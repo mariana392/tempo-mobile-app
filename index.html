@@ -1,0 +1,2163 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Tempo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Design tokens (з Figma) */
+    :root {
+      color-scheme: dark;
+      --purple-700: #370d37;
+      --purple-800: #30003d;      /* buttons/primary-background-purple-800 */
+      --purple-200: #f5bdf5;
+      --progress-active: #d048d0;
+      --progress-inactive: #d2ced2;
+      --gray-25: #e9ecef;
+      --purple-600: #661f66;      /* buttons/primary-hover-border-purple-600 */
+      --otp-border: #ada6ad;      /* black/300 */
+      --otp-filled: #22002b;
+      --otp-focus: #993399;
+      --error: #e53935;
+      --purple-100: #fcecfc;
+      --pin-filled: #339933;
+      --error-soft: #feeaea;
+      --balance-surface: #4e294e;   /* breakdown/balance-breakdown-5 */
+      --balance-muted: #af9eaf;     /* breakdown/balance-breakdown-6 */
+      --green-200: #55f055;
+      --cyan: #00e5ff;              /* secondary/cyan/a400 */
+      --amber-50: #fff8e1;          /* secondary/amber/50 */
+      --orange-200: #ffcc80;        /* secondary/orange/200 */
+      --gray-20: #f6f8fa;
+      --gray-50: #e7e7e8;
+      --divider: #d9d9d9;
+      --purple-300: #ec7fec;
+      --green-soft: #66bb6a;        /* secondary/green/400 */
+      --success-soft: #e8f5e9;
+      --gray-100: #f1f0f1;          /* black/100 */
+      --label-gray: #635d63;      /* black/500 */
+      --white-100: #ffffff;
+      --black: #000000;
+      --text-primary-black-700: #211e21;
+      --radius-btn: 8px;
+      --font: "Inter", system-ui, sans-serif;
+      --font-ios: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    html, body { min-height: 100%; }
+    body {
+      background: #141014;
+      display: grid;
+      place-items: center;
+      padding-block: 24px;
+      padding-left: max(16px, env(safe-area-inset-left, 0px));
+      padding-right: max(16px, env(safe-area-inset-right, 0px));
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Телефон 390×844 */
+    .phone {
+      position: relative;
+      width: 390px;
+      max-width: 100%;
+      height: 844px;
+      overflow: hidden;
+      border-radius: 40px;
+      box-shadow: 0 0 0 10px #2a222a, 0 30px 80px rgba(0,0,0,.5);
+    }
+    @media (max-width: 430px) {
+      body { padding: 0; display: block; }
+      .phone { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+    }
+
+    /* Екрани */
+    .screen { position: absolute; inset: 0; }
+    .screen[aria-hidden="true"] { display: none; }
+
+    .screen--splash { background: var(--purple-700); color: var(--white-100); }
+    .screen--onboarding { background: var(--gray-25); color: var(--text-primary-black-700); }
+
+    /* Status bar */
+    .status-bar { position: absolute; inset: 0 0 auto 0; height: 33px; z-index: 2; }
+    .status-bar .time {
+      position: absolute; left: 29px; top: 13px; width: 54px;
+      font: 600 15px/20px var(--font-ios);
+      letter-spacing: -0.5px; text-align: center;
+    }
+    .status-bar .notch { position: absolute; left: 111px; top: 0; width: 164px; height: 31px; }
+    .status-bar .right { position: absolute; left: 294.67px; top: 17.33px; width: 66.66px; height: 11.34px; }
+    .screen--onboarding .status-bar .time { color: var(--black); }
+
+    .home-indicator {
+      position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+      width: 134px; height: 5px; border-radius: 100px; background: var(--white-100);
+    }
+    .screen--onboarding .home-indicator { background: var(--black); }
+
+    /* Кнопки (Size=Big) */
+    .btn {
+      position: absolute;
+      left: 16px; right: 16px; bottom: 50px; /* top 738 у 844 */
+      height: 56px;
+      padding: 8px 24px;
+      border: 0; border-radius: var(--radius-btn);
+      font: 500 16px/24px var(--font);
+      letter-spacing: 0.15px;
+      cursor: pointer;
+    }
+    .btn:focus-visible, .btn-icon:focus-visible { outline: 3px solid #7be35a; outline-offset: 3px; }
+    .btn--primary-white { background: var(--white-100); color: var(--text-primary-black-700); }  /* Type=Primary white */
+    .btn--primary { background: var(--purple-800); color: var(--white-100); }                      /* Type=Primary */
+
+    /* ---- Splash ---- */
+    .bg-pattern {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: top left; pointer-events: none;
+    }
+    .hero {
+      position: absolute;
+      left: 50%; top: calc(50% - 0.44px);
+      transform: translate(-50%, -50%);
+      width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; align-items: center; gap: 32px;
+      text-align: center;
+    }
+    .hero .logo { width: 160.74px; height: 58.99px; }
+    .hero .copy { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+    .hero h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .hero p  { font-weight: 400; font-size: 14px; line-height: 20px; letter-spacing: 0.25px; }
+
+    /* ---- Onboarding 1 ---- */
+    .btn-icon {
+      position: absolute; left: 334px; top: 57px; width: 40px; height: 40px;
+      padding: 0; border: 0; background: none; border-radius: 4px; cursor: pointer;
+    }
+    .btn-icon img { display: block; width: 40px; height: 40px; }
+    .onb-illustration {
+      position: absolute; left: 49px; top: 105px; width: 341px; height: 302px;
+    }
+    .onb-illustration--2 { left: 0; top: 111.6px; width: 390.12px; height: 284.61px; }
+    .onb-illustration--3 { left: 54px; top: 140px; width: 281px; height: 231.68px; }
+    .onb-illustration--4 { left: 16px; top: 105px; width: 358px; height: 277.22px; }
+    .onb-star--4 { position: absolute; left: 292px; top: 284px; width: 11px; height: 13px; }
+    .onb-illustration--5 { left: 47px; top: 114px; width: 296px; height: 264.5px; }
+    .onb-content {
+      position: absolute; left: 16px; top: 439px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      text-align: center;
+    }
+    .onb-content .progress-spacer { width: 66px; height: 8px; }
+
+    /* Onboarding progress bar — один спільний компонент, щоб анімувався між екранами */
+    .progress {
+      position: absolute; left: 50%; top: 439px; transform: translateX(-50%);
+      display: flex; gap: 4px; z-index: 3;
+    }
+    .progress[hidden] { display: none; }
+    .progress .dot {
+      width: 8px; height: 8px; border-radius: 4px;
+      background: var(--progress-inactive);
+      transition: width .3s ease, background-color .3s ease;
+    }
+    .progress .dot.is-active { width: 18px; background: var(--progress-active); }
+    @media (prefers-reduced-motion: reduce) { .progress .dot { transition: none; } }
+    .onb-content .copy { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+    .onb-content h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .onb-content p  { font-weight: 400; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+
+    /* ---- Verify identity via Diia (Figma 5233:25523) ---- */
+    .screen--white { background: var(--white-100); color: var(--text-primary-black-700); }
+    .screen--white .status-bar .time { color: var(--black); }
+    .screen--white .home-indicator { background: var(--black); }
+    .btn-back {
+      position: absolute; left: 16px; top: 49px; width: 40px; height: 40px;
+      padding: 0; border: 0; background: none; border-radius: 4px; cursor: pointer;
+    }
+    .btn-back img { display: block; width: 40px; height: 40px; }
+    .btn-back:focus-visible { outline: 3px solid #7be35a; outline-offset: 3px; }
+    .verify {
+      position: absolute; left: 16px; top: 113px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 52px;
+    }
+    .verify-head { display: flex; flex-direction: column; gap: 24px; }
+    .verify-head .pictogram { width: 64px; height: 64px; display: block; }
+    .verify-head .copy { display: flex; flex-direction: column; gap: 12px; }
+    .verify-head h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .verify-head p  { font-weight: 400; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .option-card {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; height: 72px; padding: 16px 12px;
+      background: var(--white-100);
+      border: 1px solid var(--purple-200); border-radius: 8px;
+      font: 500 14px/20px var(--font); letter-spacing: 0.1px;
+      color: var(--text-primary-black-700); text-align: left;
+      cursor: pointer;
+    }
+    .option-card:focus-visible { outline: 3px solid #7be35a; outline-offset: 3px; }
+    .option-card .logo { width: 40px; height: 40px; flex: none; }
+    .option-card .label { flex: 1; min-width: 0; }
+    .option-card .chevron { width: 32px; height: 32px; flex: none; }
+
+    /* ---- Legal terms / Публічна оферта (Figma 2131:23232) ---- */
+    .screen--purple { background: var(--purple-700); color: var(--white-100); }
+    .legal-illustration { position: absolute; left: 118px; top: 195px; width: 154px; height: 158px; }
+    .legal-copy {
+      position: absolute; left: 16px; top: 413px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 12px; text-align: center;
+    }
+    .legal-copy h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .legal-copy p  { font-weight: 400; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .screen--purple .btn { bottom: auto; top: 742px; }
+
+    /* ---- Privacy Policy / Політика конфіденційності (Figma 5233:25573) ---- */
+    .status-bar--compact .time { top: 9.3px; }
+    .status-bar--compact .notch { height: 26.02px; }
+    .status-bar--compact .right { top: 14.55px; height: 9.51px; }
+    .nav-title {
+      position: absolute; left: 0; right: 0; top: 57px;
+      font: 500 16px/24px var(--font); letter-spacing: 0.15px; text-align: center;
+    }
+    .doc {
+      position: absolute; left: 16px; top: 105px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .doc h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .doc-body { display: flex; flex-direction: column; gap: 20px; }
+    .doc-body p, .doc-body li { font-size: 14px; line-height: 20px; letter-spacing: 0.25px; }
+    .doc-body ul { list-style: none; }
+    .doc-body li { white-space: pre; }
+    .doc-group { display: flex; flex-direction: column; gap: 12px; }
+    .screen--white .btn--doc { bottom: auto; top: 750px; }
+    .screen--white .home-indicator--doc { bottom: auto; top: 831px; background: #222222; }
+
+    /* ---- Confirmation of consent (Figma 5233:25607) ---- */
+    .consent-illustration { position: absolute; left: 114px; top: 201px; width: 173.14px; height: 152px; }
+    .consent-dot {
+      position: absolute; left: 201px; top: 341px; width: 6px; height: 6px;
+      border: 1.8px solid var(--progress-inactive); border-radius: 50%;
+    }
+    .consent-copy {
+      position: absolute; left: 16px; top: 396px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 12px; text-align: center;
+    }
+    .consent-copy h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .consent-copy p  { font-weight: 400; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .consent-form {
+      position: absolute; left: 16px; top: 654px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 32px;
+    }
+    .checkbox-row { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+    .checkbox-row input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .checkbox-row .box { width: 24px; height: 24px; flex: none; background: url("assets/checkbox-unselected.png") center / 24px 24px no-repeat; border-radius: 4px; }
+    .checkbox-row input:checked + .box { background-image: url("assets/checkbox-selected.png"); }
+    .checkbox-row input:focus-visible + .box { outline: 3px solid #7be35a; outline-offset: 2px; }
+    .checkbox-row .text { flex: 1; min-width: 0; margin-right: -3px; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+    .doc-link { color: var(--otp-focus); text-decoration: underline; text-underline-offset: 2px; text-decoration-skip-ink: none; }
+    .consent-form .btn { position: static; width: 100%; height: 56px; padding: 16px 24px; }
+    .btn:disabled { background: var(--progress-inactive); color: var(--white-100); cursor: not-allowed; }
+
+    /* ---- Confirm agreement with code / OTP (Figma 4541:14607) ---- */
+    .otp-screen {
+      position: absolute; left: 16px; top: 105px; width: 359px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 40px;
+    }
+    .otp-head { display: flex; flex-direction: column; gap: 24px; }
+    .otp-head .pictogram { width: 64px; height: 64px; display: block; }
+    .otp-head .copy { display: flex; flex-direction: column; gap: 12px; }
+    .otp-head h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .otp-head p  { font-weight: 400; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .otp-head strong { font-weight: 700; }
+    .otp-block { display: flex; flex-direction: column; gap: 16px; }
+    .otp { display: flex; align-items: center; gap: 6px; }
+    .otp-group { display: flex; gap: 4px; }
+    .otp-dash { width: 13px; height: 2px; background: var(--otp-border); flex: none; }
+    .otp input {
+      width: 53px; height: 67px; flex: none;
+      border: 1px solid var(--otp-border); border-radius: 4px;
+      background: transparent; color: var(--text-primary-black-700);
+      font: 500 40px/48px var(--font); text-align: center;
+      caret-color: var(--otp-focus); outline: none;
+      -webkit-appearance: none; appearance: none;
+    }
+    .otp input.is-filled { border-color: var(--otp-filled); }
+    .otp input:focus { border: 3px solid var(--otp-focus); }
+    .otp-error { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; color: var(--error); }
+    .help { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+    .help a { color: var(--otp-focus); text-decoration: underline; text-decoration-skip-ink: none; }
+    .otp-expires {
+      position: absolute; left: 0; right: 0; top: 630px;
+      font-size: 12px; line-height: 16px; letter-spacing: 0.4px; text-align: center; color: var(--black);
+      padding-left: 6px; /* центр у макеті зміщений на 3px вправо */
+    }
+    .otp-actions {
+      position: absolute; left: 16px; top: 666px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .otp-actions .btn { position: static; width: 100%; height: 56px; padding: 16px 24px; }
+    .btn--text { background: none; color: var(--purple-600); }
+
+    /* ---- OTP: стан з відкритою клавіатурою (Figma 4541:14579) ---- */
+    .ios-keyboard {
+      position: absolute; left: 0; top: 553px; width: 390px; height: 291px; z-index: 5;
+      transform: translateY(100%); visibility: hidden;
+      transition: transform .25s ease-out, visibility 0s linear .25s;
+    }
+    .ios-keyboard-img { display: block; width: 390px; height: 291px; }
+    .is-keyboard .ios-keyboard { transform: translateY(0); visibility: visible; transition: transform .25s ease-out; }
+    @media (prefers-reduced-motion: reduce) { .ios-keyboard, .is-keyboard .ios-keyboard { transition: none; } }
+    .kb-key {
+      position: absolute; width: 123px; height: 46px; border: 0; border-radius: 4.6px;
+      background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .kb-key:active, .kb-key.is-pressed { background: rgba(0, 0, 0, .14); }
+    .kb-key--flat:active, .kb-key--flat.is-pressed { background: rgba(255, 255, 255, .55); }
+    /* Компактний макет екрана, поки відкрита клавіатура */
+    .is-keyboard .otp-screen { top: 125px; }
+    .is-keyboard .otp-head .pictogram,
+    .is-keyboard .otp-head .copy p { display: none; }
+    .is-keyboard .help { margin-top: 32px; }
+    .is-keyboard .otp-expires { top: 373px; }
+    .is-keyboard .otp-actions { top: 409px; }
+    .is-keyboard > .home-indicator { display: none; }
+
+    /* ---- Authorization Letter / Заява-доручення (Figma 5233:25705) ---- */
+    .letter {
+      position: absolute; left: 16px; top: 105px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .letter-head { display: flex; flex-direction: column; gap: 8px; font-weight: 500; }
+    .letter-head h1 { font-size: 22px; line-height: 28px; font-weight: 500; }
+    .letter-head p { font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .letter-body { display: flex; flex-direction: column; gap: 20px; }
+    .letter-section { display: flex; flex-direction: column; gap: 12px; }
+    .letter-section h2 { font-weight: 500; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; height: 23px; }
+    .letter-body p { font-size: 14px; line-height: 20px; letter-spacing: 0.25px; }
+
+    /* ---- Identity confirmed (Figma 5233:25737) ---- */
+    .result-illustration { position: absolute; left: 103px; top: 220px; width: 185px; height: 177px; }
+    .result-copy {
+      position: absolute; left: 16px; top: 449px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 12px; text-align: center;
+    }
+    .result-copy h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .result-copy p  { font-weight: 400; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+
+    /* ---- Create your account / email (Figma 90:2265) ---- */
+    .steps { position: absolute; left: 16px; top: 97px; display: flex; gap: 6px; z-index: 3; }
+    .steps[hidden] { display: none; }
+    .steps span { height: 4px; border-radius: 100px; background: var(--progress-inactive); }
+    /* Активний сегмент — окрема смужка, що плавно перетікає на наступний крок */
+    .steps-active {
+      position: absolute; top: 0; left: 0; height: 4px; border-radius: 100px;
+      background: var(--progress-active);
+      transition: transform .3s ease, width .3s ease;
+    }
+    @media (prefers-reduced-motion: reduce) { .steps-active { transition: none; } }
+    .steps span.is-done { background: var(--progress-active); }
+    .account {
+      position: absolute; left: 16px; top: 141px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 24px;
+    }
+    .account .pictogram { width: 64px; height: 64px; display: block; }
+    .account-form { display: flex; flex-direction: column; gap: 40px; }
+    .account .copy { display: flex; flex-direction: column; gap: 12px; }
+    .account h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .account .copy p { font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    /* Text field — Style=Outlined, Leading icon=True */
+    .text-field {
+      position: relative; display: flex; align-items: center; height: 56px;
+      border: 1px solid var(--otp-border); border-radius: 4px; cursor: text;
+    }
+    .text-field .lead { width: 24px; height: 24px; margin: 0 4px 0 12px; flex: none; }
+    .text-field input {
+      flex: 1; min-width: 0; height: 100%; padding: 0 16px 0 0; border: 0; outline: none;
+      background: transparent; color: var(--text-primary-black-700);
+      font: 400 16px/24px var(--font); letter-spacing: 0.15px;
+    }
+    .text-field .label {
+      position: absolute; left: 15px; top: -9px; padding: 0 4px; background: var(--white-100);
+      font-size: 12px; line-height: 16px; letter-spacing: 0.4px; color: var(--label-gray);
+    }
+    .text-field.is-filled { border-color: var(--otp-filled); }
+    .text-field:focus-within { border: 3px solid var(--otp-focus); }
+    .text-field:focus-within .lead { margin-left: 10px; }
+    .text-field:focus-within .label { left: 13px; top: -11px; }
+    .text-field.is-error { border: 3px solid var(--error); }
+    .text-field.is-error .lead { margin-left: 10px; }
+    .text-field.is-error .label { left: 13px; top: -11px; color: var(--error); }
+    .field-error { margin-top: 4px; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; color: var(--error); }
+
+    /* ---- Create account: стан з відкритою клавіатурою (Figma 31:3476) ---- */
+    .is-keyboard .account { top: 125px; }
+    .is-keyboard .account .pictogram { display: none; }
+    .kb-key.is-shift-on { background: rgba(255, 255, 255, .85); }
+    .text-field:focus-within .label { color: var(--otp-focus); }
+
+    /* ---- Verify your email (Figma 92:5789) ---- */
+    .otp-screen--steps { top: 141px; }
+    .otp-screen--steps .otp-block { margin-top: 16px; }
+
+    /* Verify your email з відкритою клавіатурою (Figma 53:1810): текст з email лишається */
+    #screen-verify-email.is-keyboard .otp-head .copy p { display: block; }
+    #screen-verify-email.is-keyboard .otp-block { margin-top: 0; }
+    #screen-verify-email.is-keyboard .help { margin-top: 0; }
+
+    /* ---- Create a password (Figma 92:5906) ---- */
+    .text-field--plain input { padding-left: 16px; }
+    .text-field--plain .label { left: 12px; }
+    .text-field--plain:focus-within .label, .text-field--plain.is-error .label { left: 10px; }
+    .text-field--plain:focus-within input, .text-field--plain.is-error input { padding-left: 14px; }
+    .text-field .trail {
+      width: 48px; height: 48px; flex: none; margin-right: 0; padding: 12px;
+      border: 0; background: none; cursor: pointer; border-radius: 50%;
+    }
+    .text-field:focus-within .trail, .text-field.is-error .trail { margin-right: -2px; }
+    .text-field .trail img { display: block; width: 24px; height: 24px; }
+    .text-field .trail:focus-visible { outline: 3px solid #7be35a; outline-offset: -3px; }
+    .password-fields { display: flex; flex-direction: column; gap: 24px; }
+    .conditions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; list-style: none; }
+    .conditions li { display: flex; align-items: center; gap: 4px; font-size: 14px; line-height: 20px; letter-spacing: 0.25px; }
+    .conditions li::before {
+      content: ""; width: 20px; height: 20px; flex: none;
+      background: url("assets/check-todo.png") center / 20px 20px no-repeat;
+    }
+    .conditions li.is-met::before { background-image: url("assets/check-done.png"); }
+    .screen--white .btn--password { bottom: auto; top: 742px; }
+
+    /* Create a password з відкритою клавіатурою (Figma 97:2954) */
+    #screen-create-password.is-keyboard .account { top: 149px; }
+    #screen-create-password.is-keyboard .account .copy { display: none; }
+    #screen-create-password.is-keyboard .btn--password { top: 485px; }
+
+    /* ---- Create PIN code (Figma 101:5877) ---- */
+    .pin-head {
+      position: absolute; left: 16px; top: 125px; width: 358px; max-width: calc(100% - 32px);
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .pin-head h1 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .pin-head p { font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .pin-dots { position: absolute; left: 119px; top: 279px; display: flex; gap: 24px; }
+    .pin-dots span { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--label-gray); }
+    .pin-dots span.is-filled { background: var(--pin-filled); border-color: var(--pin-filled); }
+    .pin-pad {
+      position: absolute; left: 40px; top: 369px; width: 311px;
+      display: grid; grid-template-columns: repeat(3, 89px); gap: 22px;
+    }
+    .pin-key {
+      width: 89px; height: 89px; border: 0; border-radius: 76px;
+      background: var(--purple-100); color: var(--purple-600);
+      font: 700 42.18px/1 var(--font); cursor: pointer;
+      display: grid; place-items: center; -webkit-tap-highlight-color: transparent;
+    }
+    .pin-key:active, .pin-key.is-pressed { background: var(--purple-200); }
+    .pin-key:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
+    .pin-key img { width: 38.35px; height: 28.35px; display: block; place-self: start; margin: 31px 0 0 22px; }
+    .pin-key--zero { grid-column: 2; }
+
+    /* ---- Confirm PIN code: банер помилки (Figma 187:6631, 226:9865) ---- */
+    .pin-alert {
+      position: absolute; left: 16px; width: 362px; max-width: calc(100% - 28px);
+      display: flex; gap: 8px; align-items: flex-start; padding: 8px;
+      background: var(--error-soft); border-radius: 4px;
+      font-size: 14px; line-height: 20px; letter-spacing: 0.25px;
+    }
+    .pin-alert img { width: 20px; height: 20px; flex: none; }
+    .pin-alert--short { top: 233px; }
+    .pin-alert--long { top: 225px; }
+    .pin-dots.is-shift-short { top: 313px; }
+    .pin-dots.is-shift-long { top: 325px; }
+    .pin-pad.is-locked .pin-key { cursor: not-allowed; }
+
+    /* ---- Home / Available balance (Figma 469:7650) ---- */
+    .screen--home { background: var(--purple-700); color: var(--white-100); }
+    .home-scroll { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+    .home-scroll::-webkit-scrollbar { display: none; }
+    .home-content { position: relative; height: 999px; }
+    .home-bg { position: absolute; left: 0; top: 0; width: 390px; height: 939px; pointer-events: none; }
+    .company-btn { position: absolute; left: 17px; top: 61px; width: 193px; height: 36px; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 8px; }
+    .company-btn img { display: block; width: 193px; height: 36px; }
+    .company-btn .company-icon { position: absolute; left: 12px; top: 7px; width: 20px; height: 20px; }
+    .bell-btn { position: absolute; left: 334px; top: 60px; width: 40px; height: 40px; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 4px; }
+    .bell-btn img { display: block; width: 40px; height: 40px; }
+    .balance { position: absolute; left: 0; right: 0; top: 129px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+    .balance .label { font-size: 14px; line-height: 20px; letter-spacing: 0.25px; color: var(--balance-muted); }
+    .balance .amount { font-weight: 700; font-size: 32px; line-height: 40px; margin-top: 4px; white-space: nowrap; }
+    .balance .chip { background: var(--balance-surface); border-radius: 4px; padding: 4px 10px; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+    .balance-top { display: flex; flex-direction: column; align-items: center; }
+    .get-paid {
+      position: absolute; left: 16px; top: 261px; width: 358px; height: 36px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      border: 0; border-radius: 8px; background: var(--green-200); color: var(--text-primary-black-700);
+      font: 500 14px/20px var(--font); letter-spacing: 0.1px; cursor: pointer;
+    }
+    .get-paid img { width: 20px; height: 20px; }
+    .home-cards { position: absolute; left: 16px; top: 329px; width: 358px; display: flex; flex-direction: column; gap: 12px; }
+    .period { background: var(--balance-surface); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .period .row { display: flex; justify-content: space-between; white-space: nowrap; }
+    .period .row--labels { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; margin-top: 1px; }
+    .period .row--values { font-size: 16px; line-height: 24px; letter-spacing: 0.15px; margin-top: 8px; }
+    .period .row--values span:first-child { font-weight: 500; }
+    .period .row--values span:last-child { font-weight: 700; }
+    .period .bar { position: relative; height: 7px; border-radius: 100px; background: var(--white-100); margin-top: 13px; }
+    .period .bar span { position: absolute; left: 0; top: 0; bottom: 0; width: 83.44%; border-radius: 100px; background: var(--cyan); }
+    .period .note { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+    .card { background: var(--white-100); color: var(--text-primary-black-700); border-radius: 12px; padding: 20px 16px 16px; display: flex; flex-direction: column; gap: 20px; }
+    .card h2 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .card-head { display: flex; justify-content: space-between; align-items: center; }
+    .chip-btn {
+      display: flex; align-items: center; gap: 4px; height: 24px; padding: 2px 8px 2px 12px;
+      border: 0; border-radius: 4px; background: var(--purple-100); color: var(--otp-focus);
+      font: 500 12px/16px var(--font); letter-spacing: 0.5px; cursor: pointer;
+    }
+    .chip-btn img { width: 16px; height: 16px; }
+    .transfers { display: flex; flex-direction: column; gap: 16px; list-style: none; }
+    .transfer { display: flex; justify-content: space-between; align-items: center; height: 44px; }
+    .transfer .who { display: flex; align-items: center; gap: 8px; }
+    .transfer .who img { width: 40px; height: 40px; display: block; }
+    .transfer .name { font-weight: 500; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .transfer .date { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; margin-top: 4px; }
+    .transfer .sum { font-weight: 500; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; white-space: nowrap; }
+    .transfer .sum--in { color: var(--pin-filled); }
+    .useful { display: flex; gap: 8px; }
+    .useful button {
+      width: 102px; height: 84px; padding: 12px 8px; border: 0; border-radius: 8px; background: var(--gray-100);
+      display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer;
+      font: 400 12px/16px var(--font); letter-spacing: 0.4px; color: var(--text-primary-black-700); text-align: center;
+    }
+    .useful img { width: 24px; height: 24px; }
+    .tab-bar {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; background: var(--white-100);
+      box-shadow: inset 0 1px 0 #ebebeb;
+    }
+    .tabs { display: flex; padding: 8px; }
+    .tabs button {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px;
+      border: 0; border-radius: 8px; background: none; cursor: pointer;
+      font: 500 11px/16px var(--font); letter-spacing: 0.5px; color: var(--purple-600);
+    }
+    .tabs button.is-active { background: var(--purple-100); }
+    .tabs img { width: 24px; height: 24px; }
+    .tab-bar .home-indicator-bar { height: 28px; position: relative; }
+    .tab-bar .home-indicator-bar span {
+      position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; margin-left: -66.5px;
+      border-radius: 100px; background: #222222;
+    }
+    .screen--home .status-bar { z-index: 5; }
+    /* фон під статус-баром, коли вміст прокручено */
+    .home-top-band { position: absolute; left: 0; right: 0; top: 0; height: 44px; z-index: 4; background: var(--purple-700); visibility: hidden; }
+    .screen--home.is-scrolled .home-top-band { visibility: visible; }
+    .company-btn:focus-visible, .bell-btn:focus-visible, .get-paid:focus-visible, .chip-btn:focus-visible,
+    .useful button:focus-visible, .tabs button:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
+
+    /* ---- Get Paid Now / transfer balance (Figma 512:7970) ---- */
+    .screen--sheet { background: var(--purple-700); color: var(--text-primary-black-700); }
+    .screen--sheet .nav-title { color: var(--white-100); }
+    .sheet { position: absolute; left: 0; right: 0; top: 109px; bottom: 0; background: var(--white-100); border-radius: 16px 16px 0 0; }
+    .pay-balance { position: absolute; left: 0; right: 0; top: 149px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+    .pay-balance .label { font-size: 14px; line-height: 20px; letter-spacing: 0.25px; color: var(--label-gray); }
+    .pay-balance .amount { font-weight: 700; font-size: 32px; line-height: 40px; margin-top: 4px; white-space: nowrap; }
+    .fee-chip { background: var(--amber-50); border: 1px solid var(--orange-200); border-radius: 4px; padding: 3px 9px; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+    .pay-form { position: absolute; left: 16px; top: 310px; width: 358px; max-width: calc(100% - 32px); display: flex; flex-direction: column; align-items: center; gap: 32px; }
+    .pay-form .field-wrap { width: 100%; position: relative; }
+    .supporting { position: absolute; left: 0; right: 16px; top: 60px; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; color: var(--label-gray); }
+    .supporting.is-error { color: var(--error); }
+    .amount-chips { display: flex; gap: 8px; }
+    .amount-chips button {
+      padding: 8px 10px; border: 0; border-radius: 4px; background: var(--gray-20); color: var(--text-primary-black-700);
+      font: 500 12px/16px var(--font); letter-spacing: 0.5px; cursor: pointer; white-space: nowrap;
+    }
+    .amount-chips button.is-selected { background: var(--purple-100); color: var(--purple-600); }
+    .amount-chips button:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
+    .screen--sheet .btn--doc { bottom: auto; top: 750px; }
+    .screen--sheet .home-indicator--doc { bottom: auto; top: 831px; background: #222222; }
+
+    /* Get Paid Now з відкритою клавіатурою (Figma 512:8047) */
+    #screen-get-paid.is-keyboard .btn--doc { top: 486px; }
+
+    /* ---- Review Transfer (Figma 512:8734) ---- */
+    .review { position: absolute; left: 16px; top: 149px; width: 358px; max-width: calc(100% - 32px); display: flex; flex-direction: column; align-items: center; gap: 40px; }
+    .review-head { display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
+    .review-head .pictogram { width: 64px; height: 64px; display: block; }
+    .review-head .label { font-size: 14px; line-height: 20px; letter-spacing: 0.25px; color: var(--label-gray); }
+    .review-head .amount { font-weight: 700; font-size: 32px; line-height: 40px; margin-top: 4px; white-space: nowrap; }
+    .review-cards { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+    .details { border: 1px solid var(--gray-50); border-radius: 12px; padding: 19px 15px 15px; display: flex; flex-direction: column; gap: 20px; }
+    .details h2 { font-weight: 500; font-size: 22px; line-height: 28px; }
+    .details .rows { display: flex; flex-direction: column; gap: 8px; padding-top: 3px; height: 50px; }
+    .details .row { display: flex; justify-content: space-between; white-space: nowrap; }
+    .details .row--main { font-size: 14px; line-height: 20px; letter-spacing: 0.25px; }
+    .details .row--small { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+    .details hr { border: 0; border-top: 1px solid var(--divider); margin: 0 0 -1px; }
+    .details .row--total { font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .details .row--total span:first-child { font-weight: 500; }
+    .details .row--total span:last-child { font-weight: 700; color: var(--otp-focus); }
+    .pay-card { height: 60px; border: 1px solid var(--gray-50); border-radius: 12px; padding: 0 7px; display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+    .pay-card img { width: 40px; height: 40px; display: block; }
+
+    /* ---- Transfer Successful (Figma 516:9444) ---- */
+    .success-illustration { position: absolute; left: 96px; top: 79px; width: 198px; height: 197.42px; }
+    .success-copy { position: absolute; left: 27px; top: 288px; width: 326px; max-width: calc(100% - 54px); display: flex; flex-direction: column; gap: 8px; text-align: center; }
+    .success-copy h1 { font-weight: 700; font-size: 32px; line-height: 40px; }
+    .success-copy p { font-weight: 500; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .details--dark { position: absolute; left: 16px; top: 400px; width: 358px; max-width: calc(100% - 32px); background: var(--balance-surface); color: var(--white-100); border: 0; padding: 20px 16px 16px; }
+    .details--dark hr { border-top-color: rgba(255, 255, 255, .2); }
+    .details--dark .row--total span:last-child { color: var(--purple-300); }
+
+    /* ---- Transactions / History details (Figma 595:8620) ---- */
+    .nav-title--two { top: 51.5px; display: flex; flex-direction: column; align-items: center; color: var(--white-100); }
+    .nav-title--two strong { font-weight: 500; font-size: 14px; line-height: 20px; letter-spacing: 0.1px; }
+    .nav-title--two span { font-weight: 400; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; color: var(--balance-muted); }
+    .icon-btn { position: absolute; left: 334px; top: 49px; width: 40px; height: 40px; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 4px; }
+    .icon-btn img { display: block; width: 40px; height: 40px; }
+    .icon-btn:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
+    .tx-scroll { position: absolute; left: 0; right: 0; top: 125px; bottom: 93px; overflow-y: auto; scrollbar-width: none; }
+    .tx-scroll::-webkit-scrollbar { display: none; }
+    .tx-list { width: 358px; max-width: calc(100% - 32px); margin: 0 auto; padding-bottom: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .tx-day { display: flex; flex-direction: column; gap: 16px; }
+    .tx-day > h3 { font-weight: 400; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; text-align: center; }
+    .tx-cards { display: flex; flex-direction: column; gap: 8px; list-style: none; }
+    .tx { border: 1px solid var(--progress-inactive); border-radius: 8px; padding: 15px 11px; display: flex; flex-direction: column; gap: 8px; }
+    .tx .row { display: flex; justify-content: space-between; align-items: center; }
+    .tx .what { display: flex; align-items: center; gap: 4px; font-weight: 500; font-size: 14px; line-height: 20px; letter-spacing: 0.1px; }
+    .tx .what img { width: 24px; height: 24px; }
+    .tx .sum { font-weight: 500; font-size: 14px; line-height: 20px; letter-spacing: 0.1px; white-space: nowrap; }
+    .tx .sum--in { color: var(--green-soft); }
+    .tx .meta { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+    .status-chip { background: var(--success-soft); border-radius: 4px; padding: 4px 8px; font-weight: 500; font-size: 12px; line-height: 16px; letter-spacing: 0.5px; }
+    /* компактний варіант картки (останній день у макеті) */
+    .tx--compact .what { font-weight: 400; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+    .tx--compact .what img { width: 16px; height: 16px; }
+    .tx--compact .sum { font-weight: 700; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .tx--compact .row--meta { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+
+    /* ---- Earnings Details (Figma 601:9176) ---- */
+    .earn { position: absolute; left: 16px; top: 149px; width: 358px; max-width: calc(100% - 32px); display: flex; flex-direction: column; align-items: center; gap: 26px; }
+    .earn-head { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+    .earn-head .pictogram { width: 64px; height: 64px; display: block; }
+    .earn-head .who { display: flex; align-items: center; gap: 4px; font-weight: 500; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .earn-head .who img { width: 20px; height: 20px; }
+    .earn-head .when { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; color: var(--label-gray); margin-top: 4px; }
+    .earn-body { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .earn-sum { background: var(--gray-20); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .earn-sum .label { font-weight: 500; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .earn-sum .amount { font-weight: 700; font-size: 32px; line-height: 40px; color: var(--green-soft); white-space: nowrap; }
+    .earn-remaining { display: flex; justify-content: space-between; font-size: 12px; line-height: 16px; }
+    .earn-remaining span:first-child { letter-spacing: 0.4px; }
+    .earn-remaining span:last-child { font-weight: 500; letter-spacing: 0.5px; }
+    .earn-actions { position: absolute; left: 16px; top: 684px; width: 358px; max-width: calc(100% - 32px); display: flex; flex-direction: column; gap: 8px; }
+    .btn-secondary {
+      height: 36px; padding: 8px 24px 8px 20px; border: 0; border-radius: 8px; background: var(--purple-100); color: var(--otp-focus);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font: 500 14px/20px var(--font); letter-spacing: 0.1px; cursor: pointer;
+    }
+    .btn-secondary img { width: 20px; height: 20px; }
+    .btn-secondary:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
+    [data-earning] { cursor: pointer; }
+
+    /* ---- Transfer Details / Completed (Figma 601:9098) ---- */
+    .td { position: absolute; left: 16px; top: 149px; width: 358px; max-width: calc(100% - 32px); display: flex; flex-direction: column; align-items: center; gap: 26px; }
+    .td-head { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .td-head .pictogram { width: 64px; height: 64px; display: block; }
+    .td-head .when { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; color: var(--label-gray); }
+    .td-body { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .td-cards { display: flex; flex-direction: column; gap: 8px; }
+    .td-sum { background: var(--gray-20); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+    .td-sum .top { display: flex; flex-direction: column; gap: 8px; }
+    .td-sum .center { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+    .td-sum .label { font-weight: 500; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .td-sum .amount { font-weight: 700; font-size: 32px; line-height: 40px; margin-top: 4px; white-space: nowrap; }
+    .td-sum .row { display: flex; justify-content: space-between; align-items: center; height: 16px; font-size: 12px; line-height: 16px; }
+    .td-sum .row span:first-child { letter-spacing: 0.4px; }
+    .td-sum .row span:last-child { font-weight: 500; letter-spacing: 0.5px; }
+    .td-sum hr { border: 0; border-top: 1px solid var(--divider); margin: 0 0 -1px; }
+    .td-sum .row--total span { font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .td-sum .row--total span:first-child { font-weight: 500; }
+    .td-sum .row--total span:last-child { font-weight: 700; color: var(--progress-active); }
+    .bank-card { height: 60px; width: calc(100% + 1px); border: 1px solid var(--gray-50); border-radius: 12px; padding: 0 7px; display: flex; align-items: center; gap: 8px; }
+    .bank-card img { width: 40px; height: 40px; display: block; }
+    .bank-card .name { font-weight: 500; font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+    .bank-card .num { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; margin-top: 4px; }
+    .td-actions { top: 640px; }
+    [data-transfer] { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+
+    <!-- Screen 1: Splash (Figma 2804:27852) -->
+    <main class="screen screen--splash" id="screen-splash" aria-hidden="false">
+      <img class="bg-pattern" src="assets/bg-pattern.png" alt="" />
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <section class="hero">
+        <img class="logo" src="assets/logo.png" alt="Tempo" />
+        <div class="copy">
+          <h1>Welcome to Tempo</h1>
+          <p>Transfer earnings, faster and easier than ever.</p>
+        </div>
+      </section>
+      <button class="btn btn--primary-white" type="button" id="btn-splash-continue">Continue</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 2: Onboarding 1 — Access Your Money Faster (Figma 5:304) -->
+    <main class="screen screen--onboarding" id="screen-onboarding-1" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-icon" type="button" id="btn-onb-close" aria-label="Пропустити онбординг">
+        <img src="assets/btn-close.png" alt="" />
+      </button>
+      <img class="onb-illustration" src="assets/onboarding-1.png" alt="" />
+      <section class="onb-content">
+        <div class="progress-spacer" aria-hidden="true"></div>
+        <div class="copy">
+          <h1>Access Your Money Faster</h1>
+          <p>Access your earned pay before payday. Track your earnings, and stay in control of your money.</p>
+        </div>
+      </section>
+      <button class="btn btn--primary" type="button" id="btn-onb-continue">Continue</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 3: Onboarding 2 — Get Paid When You Want (Figma 29:133) -->
+    <main class="screen screen--onboarding" id="screen-onboarding-2" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-icon" type="button" id="btn-onb2-close" aria-label="Пропустити онбординг">
+        <img src="assets/btn-close.png" alt="" />
+      </button>
+      <img class="onb-illustration onb-illustration--2" src="assets/onboarding-2.png" alt="" />
+      <section class="onb-content">
+        <div class="progress-spacer" aria-hidden="true"></div>
+        <div class="copy">
+          <h1>Get Paid When You Want</h1>
+          <p>As you work, your earnings add up. You can take earnings from your available balance anytime—no waiting for payday.</p>
+        </div>
+      </section>
+      <button class="btn btn--primary" type="button" id="btn-onb2-continue">Continue</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 4: Onboarding 3 — Your Information Is Protected (Figma 29:154) -->
+    <main class="screen screen--onboarding" id="screen-onboarding-3" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-icon" type="button" id="btn-onb3-close" aria-label="Пропустити онбординг">
+        <img src="assets/btn-close.png" alt="" />
+      </button>
+      <img class="onb-illustration onb-illustration--3" src="assets/onboarding-3.png" alt="" />
+      <section class="onb-content">
+        <div class="progress-spacer" aria-hidden="true"></div>
+        <div class="copy">
+          <h1>Your Information Is Protected</h1>
+          <p>We use bank-level security to protect your personal and financial information. Your data is encrypted and never shared without permission.</p>
+        </div>
+      </section>
+      <button class="btn btn--primary" type="button" id="btn-onb3-continue">Continue</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 5: Onboarding 4 — Automatic payout (Figma 29:173) -->
+    <main class="screen screen--onboarding" id="screen-onboarding-4" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-icon" type="button" id="btn-onb4-close" aria-label="Пропустити онбординг">
+        <img src="assets/btn-close.png" alt="" />
+      </button>
+      <img class="onb-illustration onb-illustration--4" src="assets/onboarding-4.png" alt="" />
+      <img class="onb-star--4" src="assets/onboarding-4-star.png" alt="" />
+      <section class="onb-content">
+        <div class="progress-spacer" aria-hidden="true"></div>
+        <div class="copy">
+          <h1>Automatic payout at the end of the period</h1>
+          <p>On the last day of the payment period, all earned money will be transferred to your card. The available balance in the app will be 0.</p>
+        </div>
+      </section>
+      <button class="btn btn--primary" type="button" id="btn-onb4-continue">Continue</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 6: Onboarding 5 — You're Ready to Go (Figma 31:126) -->
+    <main class="screen screen--onboarding" id="screen-onboarding-5" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-icon" type="button" id="btn-onb5-close" aria-label="Пропустити онбординг">
+        <img src="assets/btn-close.png" alt="" />
+      </button>
+      <img class="onb-illustration onb-illustration--5" src="assets/onboarding-5.png" alt="" />
+      <section class="onb-content">
+        <div class="progress-spacer" aria-hidden="true"></div>
+        <div class="copy">
+          <h1>You’re Ready to Go</h1>
+          <p>You can now see your available balance and take earnings from your earned pay whenever you need it.</p>
+        </div>
+      </section>
+      <button class="btn btn--primary" type="button" id="btn-onb5-continue">Continue</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 7: Verify your identity via Diia (Figma 5233:25523) -->
+    <main class="screen screen--white" id="screen-verify-diia" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-back" type="button" id="btn-verify-back" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <section class="verify">
+        <div class="verify-head">
+          <img class="pictogram" src="assets/pictogram-documents.png" alt="" />
+          <div class="copy">
+            <h1>Verify your identity via Diia</h1>
+            <p>Provide information about yourself in a way that suits you best</p>
+          </div>
+        </div>
+        <button class="option-card" type="button" id="btn-continue-diia">
+          <img class="logo" src="assets/diia-logo.png" alt="" />
+          <span class="label">Continue via Diia</span>
+          <img class="chevron" src="assets/icon-arrow-right.png" alt="" />
+        </button>
+      </section>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 8: Legal terms for using Tempo / Публічна оферта (Figma 2131:23232) -->
+    <main class="screen screen--purple" id="screen-legal-terms" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-gray.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <img class="legal-illustration" src="assets/legal-terms.png" alt="" />
+      <section class="legal-copy">
+        <h1>Legal terms for using Tempo</h1>
+        <p>Please review the documents. This will take <span style="white-space: nowrap">2-3</span> minutes. After that, you must confirm your agreement with the Tempo documents to proceed the registration.</p>
+      </section>
+      <button class="btn btn--primary-white" type="button" id="btn-legal-continue">Continue</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 9: Privacy Policy / Політика конфіденційності (Figma 5233:25573) -->
+    <main class="screen screen--white" id="screen-privacy-policy" aria-hidden="true">
+      <div class="status-bar status-bar--compact" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-compact.png" alt="" />
+        <img class="right" src="assets/status-right-compact.png" alt="" />
+      </div>
+      <p class="nav-title">Privacy Policy</p>
+      <button class="btn-back" type="button" id="btn-privacy-back" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <article class="doc">
+        <h1>Tempo Privacy Policy</h1>
+        <div class="doc-body">
+          <p>We care about your privacy and the protection of personal data.</p>
+          <div>
+            <p>By using Tempo, you agree to the processing of your data for:</p>
+            <ul>
+              <li> • creating and maintaining your account</li>
+              <li> • processing payments</li>
+              <li> • improving service performance</li>
+              <li> • complying with legal requirements.</li>
+            </ul>
+          </div>
+          <div class="doc-group">
+            <p>We may share data with trusted partners (payment systems, banks) only within the scope of providing services.</p>
+            <p>We implement technical and organisational measures to protect your data.</p>
+            <p>You have the right to access, modify, or delete your personal data.</p>
+            <p>For more details, see the full version of the Privacy Policy.</p>
+          </div>
+        </div>
+      </article>
+      <button class="btn btn--primary btn--doc" type="button" id="btn-privacy-continue">Continue</button>
+      <div class="home-indicator home-indicator--doc" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 10: Confirmation of consent (Figma 5233:25607) -->
+    <main class="screen screen--white" id="screen-consent" aria-hidden="true">
+      <div class="status-bar status-bar--compact" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-compact.png" alt="" />
+        <img class="right" src="assets/status-right-compact.png" alt="" />
+      </div>
+      <button class="btn-back" type="button" id="btn-consent-back" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <img class="consent-illustration" src="assets/consent.png" alt="" />
+      <span class="consent-dot" aria-hidden="true"></span>
+      <section class="consent-copy">
+        <h1>Confirmation of consent</h1>
+        <p>Please confirm your agreement with the Tempo documents.</p>
+      </section>
+      <div class="consent-form">
+        <label class="checkbox-row" for="consent-checkbox">
+          <input type="checkbox" id="consent-checkbox" />
+          <span class="box" aria-hidden="true"></span>
+          <span class="text">I have read and agree to the <a href="#" class="doc-link" data-doc="public-offer">Public Offer</a>, <a href="#" class="doc-link" data-doc="privacy-policy">Privacy Policy</a>, <a href="#" class="doc-link" data-doc="personal-data">Consent to the Processing of Personal Data</a>, and the <a href="#" class="doc-link" data-doc="edm-rules">Rules of Electronic Document Management</a> of Tempo.</span>
+        </label>
+        <button class="btn btn--primary" type="button" id="btn-consent-continue" disabled>Continue</button>
+      </div>
+      <div class="home-indicator home-indicator--doc" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 11: Confirm your agreement with the documents — код з пошти (Figma 4541:14607) -->
+    <main class="screen screen--white" id="screen-agree-code" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-back" type="button" id="btn-agree-code-back" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <section class="otp-screen">
+        <div class="otp-head">
+          <img class="pictogram" src="assets/pictogram-email.png" alt="" />
+          <div class="copy">
+            <h1>Confirm your agreement with the documents.</h1>
+            <p>Use this code to confirm your agreement to the Public Offer, the Privacy Policy, and the Consent to the Processing of Personal Data.</p>
+            <p>We just sent a 6-digit code to <strong>example@domain.com</strong>, enter it below:</p>
+          </div>
+        </div>
+        <div class="otp-block">
+          <div class="otp" id="otp" role="group" aria-label="6-значний код">
+            <div class="otp-group">
+              <input id="otp-1" inputmode="none" autocomplete="one-time-code" maxlength="1" aria-label="Цифра 1" />
+              <input id="otp-2" inputmode="none" maxlength="1" aria-label="Цифра 2" />
+              <input id="otp-3" inputmode="none" maxlength="1" aria-label="Цифра 3" />
+            </div>
+            <span class="otp-dash" aria-hidden="true"></span>
+            <div class="otp-group">
+              <input id="otp-4" inputmode="none" maxlength="1" aria-label="Цифра 4" />
+              <input id="otp-5" inputmode="none" maxlength="1" aria-label="Цифра 5" />
+              <input id="otp-6" inputmode="none" maxlength="1" aria-label="Цифра 6" />
+            </div>
+          </div>
+          <p class="otp-error" id="otp-error" hidden>Incorrect verification code. Please try again.</p>
+          <p class="help">Need help? <a href="#" id="link-contact">Contact us</a></p>
+        </div>
+      </section>
+      <p class="otp-expires">The code expires in 10 minutes</p>
+      <div class="otp-actions">
+        <button class="btn btn--primary" type="button" id="btn-agree-code-continue" data-role="otp-continue" disabled>Continue</button>
+        <button class="btn btn--text" type="button" id="btn-resend-code" data-role="otp-resend">Resend code</button>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+      <div class="ios-keyboard" id="ios-keyboard" aria-hidden="true">
+        <img class="ios-keyboard-img" src="assets/keyboard-numeric.png" alt="" />
+        <button type="button" class="kb-key" data-key="1" style="left:3px;top:6px" tabindex="-1" aria-label="1"></button>
+        <button type="button" class="kb-key" data-key="2" style="left:132px;top:6px" tabindex="-1" aria-label="2"></button>
+        <button type="button" class="kb-key" data-key="3" style="left:261px;top:6px" tabindex="-1" aria-label="3"></button>
+        <button type="button" class="kb-key" data-key="4" style="left:3px;top:60px" tabindex="-1" aria-label="4"></button>
+        <button type="button" class="kb-key" data-key="5" style="left:132px;top:60px" tabindex="-1" aria-label="5"></button>
+        <button type="button" class="kb-key" data-key="6" style="left:261px;top:60px" tabindex="-1" aria-label="6"></button>
+        <button type="button" class="kb-key" data-key="7" style="left:3px;top:114px" tabindex="-1" aria-label="7"></button>
+        <button type="button" class="kb-key" data-key="8" style="left:132px;top:114px" tabindex="-1" aria-label="8"></button>
+        <button type="button" class="kb-key" data-key="9" style="left:261px;top:114px" tabindex="-1" aria-label="9"></button>
+        <button type="button" class="kb-key" data-key="0" style="left:132px;top:168px" tabindex="-1" aria-label="0"></button>
+        <button type="button" class="kb-key kb-key--flat" data-key="backspace" style="left:261px;top:168px" tabindex="-1" aria-label="Видалити"></button>
+      </div>
+    </main>
+
+    <!-- Screen 12: Authorization Letter / Заява-доручення (Figma 5233:25705) -->
+    <main class="screen screen--white" id="screen-authorization-letter" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <p class="nav-title">Authorization Letter</p>
+      <button class="btn-back" type="button" id="btn-letter-back" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <article class="letter">
+        <div class="letter-head">
+          <h1>Authorization Letter for UPS Ground Services</h1>
+          <p>You sign it once, and it applies to all your requests with Tempo.</p>
+        </div>
+        <div class="letter-body">
+          <section class="letter-section">
+            <h2>What this means for you</h2>
+            <p>Funds received through Tempo are deducted from your salary: the employer transfers this amount to Tempo. The fee is included in this amount and is not deducted separately, so on payday, your salary will only be reduced by the amount you have already received.</p>
+          </section>
+          <p>The document must be signed in the Diia app. Without a signature, Tempo will be unavailable.</p>
+        </div>
+      </article>
+      <button class="btn btn--primary" type="button" id="btn-sign-diia">Sign via Diia</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 13: Identity confirmed / Особу підтверджено (Figma 5233:25737) -->
+    <main class="screen screen--purple" id="screen-identity-confirmed" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-gray.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <img class="result-illustration" src="assets/identity-confirmed.png" alt="" />
+      <section class="result-copy">
+        <h1>Identity confirmed</h1>
+        <p>Verification completed successfully</p>
+      </section>
+      <button class="btn btn--primary-white" type="button" id="btn-identity-continue">Continue</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 14: Create your account / email (Figma 90:2265) -->
+    <main class="screen screen--white" id="screen-create-account" data-step="1" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <section class="account">
+        <img class="pictogram" src="assets/pictogram-user.png" alt="" />
+        <form class="account-form" id="form-create-account" novalidate>
+          <div class="copy">
+            <h1>Create your account</h1>
+            <p>We’ll send you a verification code to validate your email</p>
+          </div>
+          <div>
+            <label class="text-field" id="field-email" for="input-email">
+              <img class="lead" src="assets/icon-mail.png" alt="" />
+              <input type="text" id="input-email" autocomplete="email" inputmode="none" autocapitalize="off" spellcheck="false" />
+              <span class="label">Email</span>
+            </label>
+            <p class="field-error" id="email-error" hidden>Please enter a valid email address</p>
+          </div>
+        </form>
+      </section>
+      <div class="otp-actions">
+        <button class="btn btn--primary" type="submit" form="form-create-account" id="btn-create-account-continue" disabled>Continue</button>
+        <button class="btn btn--text" type="button" id="btn-sign-in">Already have an account? Sign in</button>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+      <div class="ios-keyboard" id="ios-keyboard-alpha" aria-hidden="true">
+        <img class="ios-keyboard-img" src="assets/keyboard-alphabetic.png" alt="" />
+        <button type="button" class="kb-key" data-key="q" style="left:5px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="q"></button>
+        <button type="button" class="kb-key" data-key="w" style="left:43px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="w"></button>
+        <button type="button" class="kb-key" data-key="e" style="left:82px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="e"></button>
+        <button type="button" class="kb-key" data-key="r" style="left:120px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="r"></button>
+        <button type="button" class="kb-key" data-key="t" style="left:159px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="t"></button>
+        <button type="button" class="kb-key" data-key="y" style="left:197px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="y"></button>
+        <button type="button" class="kb-key" data-key="u" style="left:236px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="u"></button>
+        <button type="button" class="kb-key" data-key="i" style="left:275px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="i"></button>
+        <button type="button" class="kb-key" data-key="o" style="left:313px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="o"></button>
+        <button type="button" class="kb-key" data-key="p" style="left:352px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="p"></button>
+        <button type="button" class="kb-key" data-key="a" style="left:24px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="a"></button>
+        <button type="button" class="kb-key" data-key="s" style="left:63px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="s"></button>
+        <button type="button" class="kb-key" data-key="d" style="left:101px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="d"></button>
+        <button type="button" class="kb-key" data-key="f" style="left:140px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="f"></button>
+        <button type="button" class="kb-key" data-key="g" style="left:178px;top:62px;width:35px;height:42px" tabindex="-1" aria-label="g"></button>
+        <button type="button" class="kb-key" data-key="h" style="left:218px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="h"></button>
+        <button type="button" class="kb-key" data-key="j" style="left:256px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="j"></button>
+        <button type="button" class="kb-key" data-key="k" style="left:295px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="k"></button>
+        <button type="button" class="kb-key" data-key="l" style="left:333px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="l"></button>
+        <button type="button" class="kb-key" data-key="shift" style="left:5px;top:118px;width:42px;height:42px" tabindex="-1" aria-label="Shift"></button>
+        <button type="button" class="kb-key" data-key="z" style="left:61px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="z"></button>
+        <button type="button" class="kb-key" data-key="x" style="left:100px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="x"></button>
+        <button type="button" class="kb-key" data-key="c" style="left:139px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="c"></button>
+        <button type="button" class="kb-key" data-key="v" style="left:178px;top:118px;width:35px;height:42px" tabindex="-1" aria-label="v"></button>
+        <button type="button" class="kb-key" data-key="b" style="left:218px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="b"></button>
+        <button type="button" class="kb-key" data-key="n" style="left:257px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="n"></button>
+        <button type="button" class="kb-key" data-key="m" style="left:296px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="m"></button>
+        <button type="button" class="kb-key" data-key="backspace" style="left:344px;top:118px;width:42px;height:42px" tabindex="-1" aria-label="Видалити"></button>
+        <button type="button" class="kb-key" data-key="123" style="left:5px;top:174px;width:86px;height:42px" tabindex="-1" aria-label="Символи"></button>
+        <button type="button" class="kb-key" data-key="space" style="left:97px;top:174px;width:197px;height:42px" tabindex="-1" aria-label="Пробіл"></button>
+        <button type="button" class="kb-key" data-key="return" style="left:299px;top:174px;width:86px;height:42px" tabindex="-1" aria-label="Готово"></button>
+      </div>
+    </main>
+
+    <!-- Screen 15: Create your account / Verify your email (Figma 92:5789) -->
+    <main class="screen screen--white" id="screen-verify-email" data-step="2" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-back" type="button" id="btn-verify-email-back" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <section class="otp-screen otp-screen--steps">
+        <div class="otp-head">
+          <img class="pictogram" src="assets/pictogram-email.png" alt="" />
+          <div class="copy">
+            <h1>Verify your email</h1>
+            <p>We just sent a 6-digit code to <strong id="verify-email-address">example@domain.com</strong>, enter it below:</p>
+          </div>
+        </div>
+        <div class="otp-block">
+          <div class="otp" id="otp-email" role="group" aria-label="6-значний код">
+            <div class="otp-group">
+              <input id="otp-email-1" inputmode="none" autocomplete="one-time-code" maxlength="1" aria-label="Цифра 1" />
+              <input id="otp-email-2" inputmode="none" maxlength="1" aria-label="Цифра 2" />
+              <input id="otp-email-3" inputmode="none" maxlength="1" aria-label="Цифра 3" />
+            </div>
+            <span class="otp-dash" aria-hidden="true"></span>
+            <div class="otp-group">
+              <input id="otp-email-4" inputmode="none" maxlength="1" aria-label="Цифра 4" />
+              <input id="otp-email-5" inputmode="none" maxlength="1" aria-label="Цифра 5" />
+              <input id="otp-email-6" inputmode="none" maxlength="1" aria-label="Цифра 6" />
+            </div>
+          </div>
+          <p class="otp-error" hidden>Incorrect verification code. Please try again.</p>
+          <p class="help">Need help? <a href="#" class="link-contact">Contact us</a></p>
+        </div>
+      </section>
+      <p class="otp-expires">The code expires in 10 minutes</p>
+      <div class="otp-actions">
+        <button class="btn btn--primary" type="button" id="btn-verify-email-continue" data-role="otp-continue" disabled>Continue</button>
+        <button class="btn btn--text" type="button" data-role="otp-resend">Resend code</button>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+      <div class="ios-keyboard" id="ios-keyboard-email" aria-hidden="true">
+        <img class="ios-keyboard-img" src="assets/keyboard-numeric.png" alt="" />
+        <button type="button" class="kb-key" data-key="1" style="left:3px;top:6px" tabindex="-1" aria-label="1"></button>
+        <button type="button" class="kb-key" data-key="2" style="left:132px;top:6px" tabindex="-1" aria-label="2"></button>
+        <button type="button" class="kb-key" data-key="3" style="left:261px;top:6px" tabindex="-1" aria-label="3"></button>
+        <button type="button" class="kb-key" data-key="4" style="left:3px;top:60px" tabindex="-1" aria-label="4"></button>
+        <button type="button" class="kb-key" data-key="5" style="left:132px;top:60px" tabindex="-1" aria-label="5"></button>
+        <button type="button" class="kb-key" data-key="6" style="left:261px;top:60px" tabindex="-1" aria-label="6"></button>
+        <button type="button" class="kb-key" data-key="7" style="left:3px;top:114px" tabindex="-1" aria-label="7"></button>
+        <button type="button" class="kb-key" data-key="8" style="left:132px;top:114px" tabindex="-1" aria-label="8"></button>
+        <button type="button" class="kb-key" data-key="9" style="left:261px;top:114px" tabindex="-1" aria-label="9"></button>
+        <button type="button" class="kb-key" data-key="0" style="left:132px;top:168px" tabindex="-1" aria-label="0"></button>
+        <button type="button" class="kb-key kb-key--flat" data-key="backspace" style="left:261px;top:168px" tabindex="-1" aria-label="Видалити"></button>
+      </div>
+    </main>
+
+    <!-- Screen 16: Create a password (Figma 92:5906) -->
+    <main class="screen screen--white" id="screen-create-password" data-step="4" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-back" type="button" id="btn-password-back" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <section class="account">
+        <img class="pictogram" src="assets/pictogram-lock.png" alt="" />
+        <form class="account-form" id="form-create-password" novalidate>
+          <div class="copy">
+            <h1>Create a password</h1>
+            <p>This is the password you’ll use to sign to Tempo across your devices</p>
+          </div>
+          <div>
+            <div class="password-fields">
+            <div>
+              <label class="text-field text-field--plain" id="field-password" for="input-password">
+                <input type="password" id="input-password" autocomplete="new-password" inputmode="none" />
+                <span class="label">Password</span>
+                <button type="button" class="trail" data-toggle="input-password" aria-label="Показати пароль" aria-pressed="false">
+                  <img src="assets/icon-eye-closed.png" alt="" />
+                </button>
+              </label>
+              <p class="field-error" id="password-error" hidden></p>
+            </div>
+            <div>
+              <label class="text-field text-field--plain" id="field-password-repeat" for="input-password-repeat">
+                <input type="password" id="input-password-repeat" autocomplete="new-password" inputmode="none" />
+                <span class="label">Repeat password</span>
+                <button type="button" class="trail" data-toggle="input-password-repeat" aria-label="Показати пароль" aria-pressed="false">
+                  <img src="assets/icon-eye-closed.png" alt="" />
+                </button>
+              </label>
+              <p class="field-error" id="password-repeat-error" hidden></p>
+            </div>
+            </div>
+            <ul class="conditions" aria-label="Вимоги до пароля">
+              <li data-rule="length">Minimum 8 chapters</li>
+              <li data-rule="number">At least 1 number</li>
+              <li data-rule="symbol">At least 1 special character (Example: # ? ! $ @)</li>
+            </ul>
+          </div>
+        </form>
+      </section>
+      <button class="btn btn--primary btn--password" type="submit" form="form-create-password" id="btn-password-continue" disabled>Continue</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+      <div class="ios-keyboard" id="ios-keyboard-password" aria-hidden="true">
+        <img class="ios-keyboard-img" src="assets/keyboard-alphabetic.png" alt="" />
+        <button type="button" class="kb-key" data-key="q" style="left:5px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="q"></button>
+        <button type="button" class="kb-key" data-key="w" style="left:43px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="w"></button>
+        <button type="button" class="kb-key" data-key="e" style="left:82px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="e"></button>
+        <button type="button" class="kb-key" data-key="r" style="left:120px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="r"></button>
+        <button type="button" class="kb-key" data-key="t" style="left:159px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="t"></button>
+        <button type="button" class="kb-key" data-key="y" style="left:197px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="y"></button>
+        <button type="button" class="kb-key" data-key="u" style="left:236px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="u"></button>
+        <button type="button" class="kb-key" data-key="i" style="left:275px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="i"></button>
+        <button type="button" class="kb-key" data-key="o" style="left:313px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="o"></button>
+        <button type="button" class="kb-key" data-key="p" style="left:352px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="p"></button>
+        <button type="button" class="kb-key" data-key="a" style="left:24px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="a"></button>
+        <button type="button" class="kb-key" data-key="s" style="left:63px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="s"></button>
+        <button type="button" class="kb-key" data-key="d" style="left:101px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="d"></button>
+        <button type="button" class="kb-key" data-key="f" style="left:140px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="f"></button>
+        <button type="button" class="kb-key" data-key="g" style="left:178px;top:62px;width:35px;height:42px" tabindex="-1" aria-label="g"></button>
+        <button type="button" class="kb-key" data-key="h" style="left:218px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="h"></button>
+        <button type="button" class="kb-key" data-key="j" style="left:256px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="j"></button>
+        <button type="button" class="kb-key" data-key="k" style="left:295px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="k"></button>
+        <button type="button" class="kb-key" data-key="l" style="left:333px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="l"></button>
+        <button type="button" class="kb-key" data-key="shift" style="left:5px;top:118px;width:42px;height:42px" tabindex="-1" aria-label="Shift"></button>
+        <button type="button" class="kb-key" data-key="z" style="left:61px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="z"></button>
+        <button type="button" class="kb-key" data-key="x" style="left:100px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="x"></button>
+        <button type="button" class="kb-key" data-key="c" style="left:139px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="c"></button>
+        <button type="button" class="kb-key" data-key="v" style="left:178px;top:118px;width:35px;height:42px" tabindex="-1" aria-label="v"></button>
+        <button type="button" class="kb-key" data-key="b" style="left:218px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="b"></button>
+        <button type="button" class="kb-key" data-key="n" style="left:257px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="n"></button>
+        <button type="button" class="kb-key" data-key="m" style="left:296px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="m"></button>
+        <button type="button" class="kb-key" data-key="backspace" style="left:344px;top:118px;width:42px;height:42px" tabindex="-1" aria-label="Видалити"></button>
+        <button type="button" class="kb-key" data-key="123" style="left:5px;top:174px;width:86px;height:42px" tabindex="-1" aria-label="Символи"></button>
+        <button type="button" class="kb-key" data-key="space" style="left:97px;top:174px;width:197px;height:42px" tabindex="-1" aria-label="Пробіл"></button>
+        <button type="button" class="kb-key" data-key="return" style="left:299px;top:174px;width:86px;height:42px" tabindex="-1" aria-label="Готово"></button>
+      </div>
+    </main>
+
+    <!-- Screen 17: Create PIN code (Figma 101:5877) -->
+    <main class="screen screen--white" id="screen-create-pin" data-step="5" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-back" type="button" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <section class="pin-head">
+        <h1>Create PIN code</h1>
+        <p>Set a 4-digit passcode to keep your account secure and streamline your sign-in process.</p>
+      </section>
+      <div class="pin-dots" role="status" aria-label="Введено 0 з 4 цифр">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="pin-pad">
+        <button type="button" class="pin-key" data-key="1">1</button>
+        <button type="button" class="pin-key" data-key="2">2</button>
+        <button type="button" class="pin-key" data-key="3">3</button>
+        <button type="button" class="pin-key" data-key="4">4</button>
+        <button type="button" class="pin-key" data-key="5">5</button>
+        <button type="button" class="pin-key" data-key="6">6</button>
+        <button type="button" class="pin-key" data-key="7">7</button>
+        <button type="button" class="pin-key" data-key="8">8</button>
+        <button type="button" class="pin-key" data-key="9">9</button>
+        <button type="button" class="pin-key pin-key--zero" data-key="0">0</button>
+        <button type="button" class="pin-key" data-key="backspace" aria-label="Видалити"><img src="assets/icon-pin-backspace.png" alt="" /></button>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 18: Confirm PIN code (Figma 187:6631 / 226:9865) -->
+    <main class="screen screen--white" id="screen-confirm-pin" data-step="5" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-back" type="button" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <section class="pin-head">
+        <h1>Confirm PIN code</h1>
+        <p>Retype your secret code to enable app passcode unlock.</p>
+      </section>
+      <div class="pin-alert pin-alert--short" data-alert="wrong" role="alert" hidden>
+        <img src="assets/icon-warning.png" alt="" /><span>Incorrect code. Please try again</span>
+      </div>
+      <div class="pin-alert pin-alert--long" data-alert="locked" role="alert" hidden>
+        <img src="assets/icon-warning.png" alt="" /><span>You’ve entered the wrong code too many times. It happens to the best of us, try again in 10 minutes.</span>
+      </div>
+      <div class="pin-dots" role="status" aria-label="Введено 0 з 4 цифр">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="pin-pad">
+        <button type="button" class="pin-key" data-key="1">1</button>
+        <button type="button" class="pin-key" data-key="2">2</button>
+        <button type="button" class="pin-key" data-key="3">3</button>
+        <button type="button" class="pin-key" data-key="4">4</button>
+        <button type="button" class="pin-key" data-key="5">5</button>
+        <button type="button" class="pin-key" data-key="6">6</button>
+        <button type="button" class="pin-key" data-key="7">7</button>
+        <button type="button" class="pin-key" data-key="8">8</button>
+        <button type="button" class="pin-key" data-key="9">9</button>
+        <button type="button" class="pin-key pin-key--zero" data-key="0">0</button>
+        <button type="button" class="pin-key" data-key="backspace" aria-label="Видалити"><img src="assets/icon-pin-backspace.png" alt="" /></button>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 19: Home / Available balance (Figma 469:7650) -->
+    <main class="screen screen--home" id="screen-home" aria-hidden="true">
+      <div class="home-top-band" aria-hidden="true"></div>
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <div class="home-scroll">
+        <div class="home-content">
+          <img class="home-bg" src="assets/home-bg-pattern.png" alt="" />
+          <button class="company-btn" type="button" aria-label="UPS Ground Services">
+            <img src="assets/home-company-button.png" alt="" />
+            <img class="company-icon" src="assets/icon-building.png" alt="" />
+          </button>
+          <button class="bell-btn" type="button" aria-label="Сповіщення"><img src="assets/btn-bell.png" alt="" /></button>
+          <section class="balance">
+            <div class="balance-top">
+              <p class="label">Available balance</p>
+              <p class="amount">10 784.25 ₴</p>
+            </div>
+            <p class="chip">Next update: Tomorrow</p>
+          </section>
+          <button class="get-paid" type="button"><img src="assets/icon-money.png" alt="" />Get Paid Now</button>
+          <div class="home-cards">
+            <section class="period">
+              <div>
+                <div class="row row--labels"><span>Current Pay Period</span><span>Total Earned</span></div>
+                <div class="row row--values"><span>Feb 1 - Feb 28, 2026</span><span>25 674.00 ₴</span></div>
+                <div class="bar" role="progressbar" aria-valuenow="83" aria-valuemin="0" aria-valuemax="100"><span></span></div>
+              </div>
+              <p class="note">Next Payday: February 22, 2026</p>
+            </section>
+            <section class="card">
+              <div class="card-head">
+                <h2>Recent transfers</h2>
+                <button class="chip-btn" type="button">All <img src="assets/icon-arrow-all.png" alt="" /></button>
+              </div>
+              <ul class="transfers">
+                <li class="transfer" role="button" tabindex="0" data-earning data-amount="10 000.00" data-date="Feb 16, 2026"><div class="who"><img src="assets/tile-receive.png" alt="" /><div><p class="name">Earnings</p><p class="date">Feb 16, 2026</p></div></div><p class="sum sum--in">10 000.00 ₴</p></li>
+                <li class="transfer" role="button" tabindex="0" data-transfer data-amount="10000" data-fee="100" data-date="Feb 15, 2026"><div class="who"><img src="assets/tile-send.png" alt="" /><div><p class="name">MonoDirect</p><p class="date">Feb 15, 2026</p></div></div><p class="sum">- 10 000.00 ₴</p></li>
+                <li class="transfer" role="button" tabindex="0" data-transfer data-amount="10000" data-fee="100" data-date="Feb 14, 2026"><div class="who"><img src="assets/tile-send.png" alt="" /><div><p class="name">MonoDirect</p><p class="date">Feb 14, 2026</p></div></div><p class="sum">- 10 000.00 ₴</p></li>
+              </ul>
+            </section>
+            <section class="card">
+              <h2>Useful</h2>
+              <div class="useful">
+                <button type="button"><img src="assets/icon-support.png" alt="" />Support service</button>
+                <button type="button"><img src="assets/icon-faq.png" alt="" />FAQ</button>
+                <button type="button"><img src="assets/icon-terms.png" alt="" />Terms and service</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <nav class="tab-bar">
+        <div class="tabs">
+          <button type="button" data-tab="screen-home" class="is-active" aria-current="page"><img src="assets/tab-home.png" alt="" />Home</button>
+          <button type="button" data-tab="screen-transactions"><img src="assets/tab-transactions.png" alt="" />Transactions</button>
+          <button type="button" data-tab="profile"><img src="assets/tab-profile.png" alt="" />Profile</button>
+        </div>
+        <div class="home-indicator-bar" aria-hidden="true"><span></span></div>
+      </nav>
+    </main>
+
+    <!-- Screen 20: Get Paid Now / transfer balance, empty state (Figma 512:7970) -->
+    <main class="screen screen--sheet" id="screen-get-paid" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time" style="color: var(--white-100)">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <p class="nav-title">Get Paid Now</p>
+      <button class="btn-back" type="button" id="btn-get-paid-back" aria-label="Назад">
+        <img src="assets/btn-back-white.png" alt="" />
+      </button>
+      <div class="sheet" aria-hidden="true"></div>
+      <section class="pay-balance">
+        <div class="balance-top">
+          <p class="label">Available Balance</p>
+          <p class="amount">10 784.25 ₴</p>
+        </div>
+        <p class="fee-chip">Fee: 123 ₴</p>
+      </section>
+      <form class="pay-form" id="form-get-paid" novalidate>
+        <div class="field-wrap">
+          <label class="text-field text-field--plain" id="field-amount" for="input-amount">
+            <input type="text" id="input-amount" inputmode="none" autocomplete="off" />
+            <span class="label">Top-up amount</span>
+          </label>
+          <p class="supporting" id="amount-help">Enter an amount from 100 ₴</p>
+        </div>
+        <div class="amount-chips">
+          <button type="button" data-amount="1000">1000.00 ₴</button>
+          <button type="button" data-amount="5000">5000.00 ₴</button>
+          <button type="button" data-amount="10000">10 000.00 ₴</button>
+          <button type="button" data-amount="max">Max ₴</button>
+        </div>
+      </form>
+      <button class="btn btn--primary btn--doc" type="submit" form="form-get-paid" id="btn-get-paid-continue" disabled>Continue to review</button>
+      <div class="home-indicator home-indicator--doc" aria-hidden="true"></div>
+      <div class="ios-keyboard" id="ios-keyboard-amount" aria-hidden="true">
+        <img class="ios-keyboard-img" src="assets/keyboard-numeric-plain.png" alt="" />
+        <button type="button" class="kb-key" data-key="1" style="left:3px;top:6px" tabindex="-1" aria-label="1"></button>
+        <button type="button" class="kb-key" data-key="2" style="left:132px;top:6px" tabindex="-1" aria-label="2"></button>
+        <button type="button" class="kb-key" data-key="3" style="left:261px;top:6px" tabindex="-1" aria-label="3"></button>
+        <button type="button" class="kb-key" data-key="4" style="left:3px;top:60px" tabindex="-1" aria-label="4"></button>
+        <button type="button" class="kb-key" data-key="5" style="left:132px;top:60px" tabindex="-1" aria-label="5"></button>
+        <button type="button" class="kb-key" data-key="6" style="left:261px;top:60px" tabindex="-1" aria-label="6"></button>
+        <button type="button" class="kb-key" data-key="7" style="left:3px;top:114px" tabindex="-1" aria-label="7"></button>
+        <button type="button" class="kb-key" data-key="8" style="left:132px;top:114px" tabindex="-1" aria-label="8"></button>
+        <button type="button" class="kb-key" data-key="9" style="left:261px;top:114px" tabindex="-1" aria-label="9"></button>
+        <button type="button" class="kb-key" data-key="0" style="left:132px;top:168px" tabindex="-1" aria-label="0"></button>
+        <button type="button" class="kb-key kb-key--flat" data-key="backspace" style="left:261px;top:168px" tabindex="-1" aria-label="Видалити"></button>
+      </div>
+    </main>
+
+    <!-- Screen 21: Review Transfer / 1 bank (Figma 512:8734) -->
+    <main class="screen screen--sheet" id="screen-review-transfer" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time" style="color: var(--white-100)">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <p class="nav-title">Review Transfer</p>
+      <button class="btn-back" type="button" id="btn-review-back" aria-label="Назад">
+        <img src="assets/btn-back-white.png" alt="" />
+      </button>
+      <div class="sheet" aria-hidden="true"></div>
+      <section class="review">
+        <div class="review-head">
+          <img class="pictogram" src="assets/pictogram-transfer.png" alt="" />
+          <div class="balance-top">
+            <p class="label">You're transferring</p>
+            <p class="amount" data-review="amount">1000.00 ₴</p>
+          </div>
+        </div>
+        <div class="review-cards">
+          <section class="details">
+            <h2>Transfer details</h2>
+            <div class="rows">
+              <div class="row row--main"><span>Transfer amount</span><span data-review="amount">1000.00 ₴</span></div>
+              <div class="row row--small"><span>Transfer fee</span><span data-review="fee">123 ₴</span></div>
+            </div>
+            <hr />
+            <div class="row row--total"><span>Total deduction</span><span data-review="total">1123.00 ₴</span></div>
+          </section>
+          <div class="pay-card"><img src="assets/tile-card.png" alt="" /><span>•••• 4892</span></div>
+        </div>
+      </section>
+      <button class="btn btn--primary btn--doc" type="button" id="btn-review-confirm">Confirm</button>
+      <div class="home-indicator home-indicator--doc" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 22: Transfer Successful (Figma 516:9444) -->
+    <main class="screen screen--purple" id="screen-transfer-success" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <img class="success-illustration" src="assets/transfer-success.png" alt="" />
+      <section class="success-copy">
+        <h1>Transfer successful!</h1>
+        <p>Your money is on its way</p>
+      </section>
+      <section class="details details--dark">
+        <h2>Transfer details</h2>
+        <div class="rows">
+          <div class="row row--main"><span>Transfer amount</span><span data-success="amount">-1000.00 ₴</span></div>
+          <div class="row row--small"><span>Transfer fee</span><span data-success="fee">-123 ₴</span></div>
+        </div>
+        <hr />
+        <div class="rows">
+          <div class="row row--main"><span>Remaining</span><span data-success="remaining">9 661.25 ₴</span></div>
+          <div class="row row--small"><span>Date &amp; time</span><span data-success="datetime">February 16, 2026 at 19:00</span></div>
+        </div>
+        <hr />
+        <div class="row row--total"><span>Total deduction</span><span data-success="total">-1123.00 ₴</span></div>
+      </section>
+      <button class="btn btn--primary-white" type="button" id="btn-success-done" style="bottom: auto; top: 742px">Done</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 23: Transactions / History details (Figma 595:8620) -->
+    <main class="screen screen--sheet" id="screen-transactions" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time" style="color: var(--white-100)">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <p class="nav-title nav-title--two"><strong>Current Pay Period</strong><span>Feb 1 - Feb 20, 2026</span></p>
+      <button class="icon-btn" type="button" aria-label="Пошук"><img src="assets/btn-search.png" alt="" /></button>
+      <div class="sheet" aria-hidden="true"></div>
+      <div class="tx-scroll">
+        <div class="tx-list">
+            <section class="tx-day">
+              <h3>February 20, 2026</h3>
+              <ul class="tx-cards">
+                <li class="tx" role="button" tabindex="0" data-earning data-amount="1000.00" data-date="Feb 20, 2026"><div class="row"><span class="what"><img src="assets/icon-receive.png" alt="" />Earned</span><span class="sum sum--in">1000.00 ₴</span></div></li>
+              </ul>
+            </section>
+            <section class="tx-day">
+              <h3>February 19, 2026</h3>
+              <ul class="tx-cards">
+                <li class="tx" role="button" tabindex="0" data-earning data-amount="1000.00" data-date="Feb 19, 2026"><div class="row"><span class="what"><img src="assets/icon-receive.png" alt="" />Earned</span><span class="sum sum--in">1000.00 ₴</span></div></li><li class="tx" role="button" tabindex="0" data-transfer data-amount="1000" data-fee="100" data-date="Feb 19, 2026"><div class="row"><span class="what"><img src="assets/icon-send.png" alt="" />Transfer</span><span class="sum">- 1000.00 ₴</span></div><div class="row"><span class="meta">Status</span><span class="status-chip">Completed</span></div></li>
+              </ul>
+            </section>
+            <section class="tx-day">
+              <h3>February 18, 2026</h3>
+              <ul class="tx-cards">
+                <li class="tx" role="button" tabindex="0" data-earning data-amount="1000.00" data-date="Feb 18, 2026"><div class="row"><span class="what"><img src="assets/icon-receive.png" alt="" />Earned</span><span class="sum sum--in">1000.00 ₴</span></div></li><li class="tx" role="button" tabindex="0" data-transfer data-amount="1000" data-fee="100" data-date="Feb 18, 2026"><div class="row"><span class="what"><img src="assets/icon-send.png" alt="" />Transfer</span><span class="sum">- 1000.00 ₴</span></div><div class="row"><span class="meta">Status</span><span class="status-chip">Completed</span></div></li>
+              </ul>
+            </section>
+            <section class="tx-day">
+              <h3>February 17, 2026</h3>
+              <ul class="tx-cards">
+                <li class="tx" role="button" tabindex="0" data-earning data-amount="1000.00" data-date="Feb 17, 2026"><div class="row"><span class="what"><img src="assets/icon-receive.png" alt="" />Earned</span><span class="sum sum--in">1000.00 ₴</span></div></li><li class="tx" role="button" tabindex="0" data-transfer data-amount="1000" data-fee="100" data-date="Feb 17, 2026"><div class="row"><span class="what"><img src="assets/icon-send.png" alt="" />Transfer</span><span class="sum">- 1000.00 ₴</span></div><div class="row"><span class="meta">Status</span><span class="status-chip">Completed</span></div></li>
+              </ul>
+            </section>
+            <section class="tx-day">
+              <h3>February 16</h3>
+              <ul class="tx-cards">
+                <li class="tx tx--compact" role="button" tabindex="0" data-earning data-amount="1000.00" data-date="Feb 16, 2026"><div class="row"><span class="what"><img src="assets/icon-receive.png" alt="" />Earned</span><span class="sum sum--in">1000.00 ₴</span></div><div class="row row--meta"><span>Gross payroll</span><span>1 200.00 ₴</span></div></li><li class="tx tx--compact" role="button" tabindex="0" data-transfer data-amount="1000" data-fee="100" data-date="Feb 16, 2026"><div class="row"><span class="what"><img src="assets/icon-send.png" alt="" />Transfer</span><span class="sum">- 1000.00 ₴</span></div><div class="row row--meta"><span>Transfer fee</span><span>-100 ₴</span></div></li>
+              </ul>
+            </section>
+        </div>
+      </div>
+      <nav class="tab-bar">
+        <div class="tabs">
+          <button type="button" data-tab="screen-home"><img src="assets/tab-home-linear.png" alt="" />Home</button>
+          <button type="button" data-tab="screen-transactions" class="is-active" aria-current="page"><img src="assets/tab-transactions-active.png" alt="" />Transactions</button>
+          <button type="button" data-tab="profile"><img src="assets/tab-profile.png" alt="" />Profile</button>
+        </div>
+        <div class="home-indicator-bar" aria-hidden="true"><span></span></div>
+      </nav>
+    </main>
+
+    <!-- Screen 24: Earnings Details (Figma 601:9176) -->
+    <main class="screen screen--sheet" id="screen-earnings" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time" style="color: var(--white-100)">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <p class="nav-title">Earnings Details</p>
+      <button class="btn-back" type="button" id="btn-earnings-back" aria-label="Назад">
+        <img src="assets/btn-back-white.png" alt="" />
+      </button>
+      <div class="sheet" aria-hidden="true"></div>
+      <section class="earn">
+        <div class="earn-head">
+          <img class="pictogram" src="assets/pictogram-earnings.png" alt="" />
+          <div>
+            <p class="who"><img src="assets/icon-building-dark.png" alt="" />UPS Ground Services</p>
+            <p class="when" id="earn-when">Feb 16, 2026 at 13:45</p>
+          </div>
+        </div>
+        <div class="earn-body">
+          <div class="earn-sum"><p class="label">You earned</p><p class="amount" id="earn-amount">1000.00 ₴</p></div>
+          <div class="earn-remaining"><span>Remaining</span><span>10 784.25 ₴</span></div>
+        </div>
+      </section>
+      <div class="earn-actions">
+        <button class="btn-secondary" type="button"><img src="assets/icon-receipt.png" alt="" />View PDF receipt</button>
+        <button class="btn-secondary" type="button"><img src="assets/icon-support-line.png" alt="" />Ask a question</button>
+      </div>
+      <div class="home-indicator home-indicator--doc" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 25: Transfer Details / Completed (Figma 601:9098) -->
+    <main class="screen screen--sheet" id="screen-transfer-details" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time" style="color: var(--white-100)">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right.png" alt="" />
+      </div>
+      <p class="nav-title">Transfer Details</p>
+      <button class="btn-back" type="button" id="btn-td-back" aria-label="Назад">
+        <img src="assets/btn-back-white.png" alt="" />
+      </button>
+      <div class="sheet" aria-hidden="true"></div>
+      <section class="td">
+        <div class="td-head">
+          <img class="pictogram" src="assets/pictogram-send.png" alt="" />
+          <p class="when" id="td-when">Feb 15, 2026 at 13:45</p>
+        </div>
+        <div class="td-body">
+          <div class="td-cards">
+            <div class="td-sum">
+              <div class="top">
+                <div class="center">
+                  <div><p class="label">You transferred</p><p class="amount" id="td-amount">-1000.00 ₴</p></div>
+                  <span class="status-chip">Completed</span>
+                </div>
+                <div class="row"><span>Transfer fee</span><span id="td-fee">100 ₴</span></div>
+              </div>
+              <hr />
+              <div class="row row--total"><span>Total deduction</span><span id="td-total">-1100.00 ₴</span></div>
+            </div>
+            <div class="bank-card"><img src="assets/tile-card.png" alt="" /><div><p class="name">MonoBank</p><p class="num">•••• 4892</p></div></div>
+          </div>
+          <div class="earn-remaining"><span>Remaining</span><span>10 784.25 ₴</span></div>
+        </div>
+      </section>
+      <div class="earn-actions td-actions">
+        <button class="btn-secondary" type="button" id="btn-repeat-transfer"><img src="assets/icon-repeat.png" alt="" />Repeat transfer</button>
+        <button class="btn-secondary" type="button"><img src="assets/icon-receipt.png" alt="" />View PDF receipt</button>
+        <button class="btn-secondary" type="button"><img src="assets/icon-support-line.png" alt="" />Ask a question</button>
+      </div>
+      <div class="home-indicator home-indicator--doc" aria-hidden="true"></div>
+    </main>
+
+    <div class="steps" id="account-steps" role="progressbar" aria-label="Створення акаунту" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" hidden>
+      <span style="width:68px"></span><span style="width:67px"></span><span style="width:67px"></span><span style="width:66px"></span><span style="width:66px"></span>
+      <i class="steps-active" aria-hidden="true"></i>
+    </div>
+
+    <div class="progress" id="onb-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" hidden>
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+
+  </div>
+
+  <script>
+    // Проста навігація між екранами
+    let current = 'screen-splash';
+    let verifyReturnTo = 'screen-onboarding-5';
+    function show(id) {
+      // Запам'ятовуємо, звідки прийшли на Diia, щоб «назад» повертав туди ж
+      if (id === 'screen-verify-diia' && current.startsWith('screen-onboarding-')) verifyReturnTo = current;
+      current = id;
+      try {
+        localStorage.setItem('tempo:screen', id);
+        if (typeof amountInput !== 'undefined') localStorage.setItem('tempo:amount', amountInput.value);
+      } catch (e) {}
+      document.querySelectorAll('.screen').forEach(s => {
+        const active = s.id === id;
+        s.setAttribute('aria-hidden', String(!active));
+        s.inert = !active;
+      });
+      // Прогрес створення акаунту: крок береться з data-step екрана
+      const steps = document.getElementById('account-steps');
+      const stepScreen = document.getElementById(id);
+      const step = stepScreen && stepScreen.dataset.step ? Number(stepScreen.dataset.step) : 0;
+      steps.hidden = !step;
+      if (step) {
+        steps.setAttribute('aria-valuenow', step);
+        const seg = steps.querySelectorAll('span')[step - 1];
+        const bar = steps.querySelector('.steps-active');
+        bar.style.width = seg.offsetWidth + 'px';
+        bar.style.transform = `translateX(${seg.offsetLeft}px)`;
+      }
+      // Прогрес онбордингу: крок береться з id екрана (screen-onboarding-N)
+      const bar = document.getElementById('onb-progress');
+      const m = id.match(/^screen-onboarding-(\d+)$/);
+      bar.hidden = !m;
+      if (m) {
+        const step = Number(m[1]);
+        bar.setAttribute('aria-valuenow', step);
+        bar.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('is-active', i === step - 1));
+      }
+    }
+
+    document.getElementById('btn-splash-continue').addEventListener('click', () => show('screen-onboarding-1'));
+    document.getElementById('btn-onb-close').addEventListener('click', () => show('screen-verify-diia'));
+    document.getElementById('btn-onb-continue').addEventListener('click', () => show('screen-onboarding-2'));
+    document.getElementById('btn-onb2-close').addEventListener('click', () => show('screen-verify-diia'));
+    document.getElementById('btn-onb2-continue').addEventListener('click', () => show('screen-onboarding-3'));
+    document.getElementById('btn-onb3-close').addEventListener('click', () => show('screen-verify-diia'));
+    document.getElementById('btn-onb3-continue').addEventListener('click', () => show('screen-onboarding-4'));
+    document.getElementById('btn-onb4-close').addEventListener('click', () => show('screen-verify-diia'));
+    document.getElementById('btn-onb4-continue').addEventListener('click', () => show('screen-onboarding-5'));
+    document.getElementById('btn-onb5-close').addEventListener('click', () => show('screen-verify-diia'));
+    document.getElementById('btn-onb5-continue').addEventListener('click', () => show('screen-verify-diia'));
+    document.getElementById('btn-verify-back').addEventListener('click', () => show(verifyReturnTo));
+    document.getElementById('btn-continue-diia').addEventListener('click', () => show('screen-legal-terms'));
+    document.getElementById('btn-legal-continue').addEventListener('click', () => show('screen-privacy-policy'));
+    document.getElementById('btn-privacy-back').addEventListener('click', () => show('screen-legal-terms'));
+    document.getElementById('btn-privacy-continue').addEventListener('click', () => show('screen-consent'));
+    document.getElementById('btn-consent-back').addEventListener('click', () => show('screen-privacy-policy'));
+    // Continue активна лише після згоди
+    const consentCheckbox = document.getElementById('consent-checkbox');
+    const consentContinue = document.getElementById('btn-consent-continue');
+    consentCheckbox.addEventListener('change', () => { consentContinue.disabled = !consentCheckbox.checked; });
+    consentContinue.addEventListener('click', () => show('screen-agree-code'));
+    // Посилання на документи в тексті згоди: не перемикають чекбокс
+    document.querySelectorAll('.doc-link').forEach(a => a.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (a.dataset.doc === 'privacy-policy') show('screen-privacy-policy');
+      // TODO: екрани для інших документів (public-offer, personal-data, edm-rules)
+    }));
+
+    // ---- OTP-екран: 6 полів + iOS-клавіатура, що випливає знизу (використовується на кількох екранах) ----
+    function setupOtpScreen(screenId, { onContinue, onBack }) {
+      const screen = document.getElementById(screenId);
+      const inputs = [...screen.querySelectorAll('.otp input')];
+      const keyboard = screen.querySelector('.ios-keyboard');
+      const continueBtn = screen.querySelector('[data-role=otp-continue]');
+      const errorEl = screen.querySelector('.otp-error');
+      let active = 0;
+      function update() {
+        inputs.forEach(i => i.classList.toggle('is-filled', i.value !== ''));
+        continueBtn.disabled = inputs.some(i => i.value === '');
+        errorEl.hidden = true;
+      }
+      function fill(from, digits) {
+        digits.split('').forEach((d, k) => { if (inputs[from + k]) inputs[from + k].value = d; });
+        inputs[Math.min(from + digits.length, inputs.length - 1)].focus();
+        update();
+      }
+      function open() { screen.classList.add('is-keyboard'); keyboard.setAttribute('aria-hidden', 'false'); }
+      function close() {
+        screen.classList.remove('is-keyboard'); keyboard.setAttribute('aria-hidden', 'true');
+        if (inputs.includes(document.activeElement)) document.activeElement.blur();
+      }
+      inputs.forEach((input, idx) => {
+        input.addEventListener('focus', () => { active = idx; open(); });
+        input.addEventListener('input', () => {
+          const digits = input.value.replace(/\D/g, '');
+          input.value = '';
+          if (digits) fill(idx, digits.slice(0, inputs.length - idx)); else update();
+        });
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Backspace' && input.value === '' && idx > 0) {
+            inputs[idx - 1].value = ''; inputs[idx - 1].focus(); update(); e.preventDefault();
+          } else if (e.key === 'ArrowLeft' && idx > 0) inputs[idx - 1].focus();
+          else if (e.key === 'ArrowRight' && idx < inputs.length - 1) inputs[idx + 1].focus();
+        });
+        input.addEventListener('paste', e => {
+          e.preventDefault();
+          const digits = (e.clipboardData.getData('text') || '').replace(/\D/g, '');
+          if (digits) fill(idx, digits.slice(0, inputs.length - idx));
+        });
+      });
+      // Тап поза полем коду та клавіатурою ховає клавіатуру.
+      // Дивимось на елемент під pointerdown: макет змінюється між натисканням і відпусканням.
+      let downTarget = null;
+      screen.addEventListener('pointerdown', e => { downTarget = e.target; }, true);
+      screen.addEventListener('click', () => {
+        if (downTarget && !downTarget.closest('.otp, .ios-keyboard')) close();
+      });
+      keyboard.querySelectorAll('.kb-key').forEach(key => {
+        key.addEventListener('pointerdown', e => { e.preventDefault(); key.classList.add('is-pressed'); });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => key.addEventListener(t, () => key.classList.remove('is-pressed')));
+        key.addEventListener('click', () => {
+          const k = key.dataset.key;
+          if (k === 'backspace') {
+            if (inputs[active].value) inputs[active].value = '';
+            else if (active > 0) { active--; inputs[active].value = ''; }
+            inputs[active].focus(); update();
+          } else fill(active, k);
+        });
+      });
+      screen.querySelector('[data-role=otp-resend]').addEventListener('click', () => {
+        inputs.forEach(i => { i.value = ''; }); update(); inputs[0].focus();
+      });
+      screen.querySelectorAll('.help a').forEach(a => a.addEventListener('click', e => e.preventDefault()));
+      // TODO: перевірка коду. Для показу стану помилки: errorEl.hidden = false;
+      continueBtn.addEventListener('click', () => { close(); onContinue(); });
+      screen.querySelector('.btn-back').addEventListener('click', () => { close(); onBack(); });
+      return { reset() { inputs.forEach(i => { i.value = ''; }); update(); } };
+    }
+
+    setupOtpScreen('screen-agree-code', {
+      onContinue: () => show('screen-authorization-letter'),
+      onBack: () => show('screen-consent'),
+    });
+    const verifyEmailOtp = setupOtpScreen('screen-verify-email', {
+      onContinue: () => show('screen-create-password'),
+      onBack: () => show('screen-create-account'),
+    });
+    document.getElementById('btn-letter-back').addEventListener('click', () => show('screen-agree-code'));
+    document.getElementById('btn-sign-diia').addEventListener('click', () => show('screen-identity-confirmed'));
+    document.getElementById('btn-identity-continue').addEventListener('click', () => show('screen-create-account'));
+
+    // ---- Create your account: email ----
+    const emailInput = document.getElementById('input-email');
+    const emailField = document.getElementById('field-email');
+    const emailError = document.getElementById('email-error');
+    const emailContinue = document.getElementById('btn-create-account-continue');
+    const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+    emailInput.addEventListener('input', () => {
+      emailField.classList.toggle('is-filled', emailInput.value !== '');
+      emailField.classList.remove('is-error'); emailError.hidden = true;
+      emailContinue.disabled = emailInput.value.trim() === '';
+    });
+    document.getElementById('form-create-account').addEventListener('submit', e => {
+      e.preventDefault();
+      if (!isEmail(emailInput.value)) { emailField.classList.add('is-error'); emailError.hidden = false; return; }
+      closeAlphaKeyboard();
+      document.getElementById('verify-email-address').textContent = emailInput.value.trim();
+      verifyEmailOtp.reset();
+      show('screen-verify-email');
+    });
+
+    // ---- iOS-клавіатура (літери): випливає знизу при фокусі на текстовому полі ----
+    function setupAlphaKeyboard(screenId, { inputs, on123, onReturn }) {
+      const screen = document.getElementById(screenId);
+      const keyboard = screen.querySelector('.ios-keyboard');
+      const shiftKey = keyboard.querySelector('[data-key=shift]');
+      let target = inputs[0], shiftOn = false;
+      const open = () => { screen.classList.add('is-keyboard'); keyboard.setAttribute('aria-hidden', 'false'); };
+      const close = () => {
+        screen.classList.remove('is-keyboard'); keyboard.setAttribute('aria-hidden', 'true');
+        if (inputs.includes(document.activeElement)) document.activeElement.blur();
+      };
+      inputs.forEach(i => i.addEventListener('focus', () => { target = i; open(); }));
+      // Тап поза полями та клавіатурою ховає клавіатуру (дивимось на елемент під pointerdown)
+      let downTarget = null;
+      screen.addEventListener('pointerdown', e => { downTarget = e.target; }, true);
+      screen.addEventListener('click', () => {
+        if (downTarget && !downTarget.closest('.text-field, .ios-keyboard')) close();
+      });
+      const type = text => {
+        const s = target.selectionStart ?? target.value.length, e = target.selectionEnd ?? s;
+        target.setRangeText(text, s, e, 'end');
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      keyboard.querySelectorAll('.kb-key').forEach(key => {
+        key.addEventListener('pointerdown', e => { e.preventDefault(); key.classList.add('is-pressed'); });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => key.addEventListener(t, () => key.classList.remove('is-pressed')));
+        key.addEventListener('click', () => {
+          const k = key.dataset.key;
+          target.focus();
+          if (k === 'shift') { shiftOn = !shiftOn; shiftKey.classList.toggle('is-shift-on', shiftOn); return; }
+          if (k === 'backspace') {
+            const s = target.selectionStart, e = target.selectionEnd;
+            if (s !== e) target.setRangeText('', s, e, 'end');
+            else if (s > 0) target.setRangeText('', s - 1, s, 'end');
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+            return;
+          }
+          if (k === 'space') return;          // в email і паролі пробілів немає
+          if (k === 'return') { onReturn(target); return; }
+          if (k === '123') { type(on123(target)); return; }
+          type(shiftOn ? k.toUpperCase() : k);
+          if (shiftOn) { shiftOn = false; shiftKey.classList.remove('is-shift-on'); }
+        });
+      });
+      return { close };
+    }
+
+    // Email: у макеті немає клавіатури з @ і крапкою, тому «123» вставляє @, а якщо він уже є — крапку
+    const emailKeyboard = setupAlphaKeyboard('screen-create-account', {
+      inputs: [emailInput],
+      on123: i => (i.value.includes('@') ? '.' : '@'),
+      onReturn: () => document.getElementById('form-create-account').requestSubmit(),
+    });
+    function closeAlphaKeyboard() { emailKeyboard.close(); }
+
+    // ---- Create a password ----
+    const pw = document.getElementById('input-password');
+    const pw2 = document.getElementById('input-password-repeat');
+    const pwContinue = document.getElementById('btn-password-continue');
+    const pwRules = {
+      length: v => v.length >= 8,
+      number: v => /\d/.test(v),
+      symbol: v => /[^A-Za-z0-9\s]/.test(v),
+    };
+    function pwShowError(fid, text) {
+      const f = document.getElementById('field-' + fid), e = document.getElementById(fid + '-error');
+      f.classList.toggle('is-error', !!text); e.textContent = text || ''; e.hidden = !text;
+    }
+    function pwUpdate() {
+      document.querySelectorAll('.conditions li').forEach(li => li.classList.toggle('is-met', pwRules[li.dataset.rule](pw.value)));
+      [pw, pw2].forEach(i => i.closest('.text-field').classList.toggle('is-filled', i.value !== ''));
+      const allMet = Object.values(pwRules).every(r => r(pw.value));
+      pwContinue.disabled = !(allMet && pw2.value !== '' && pw.value === pw2.value);
+      if (pw2.value === '' || pw.value.startsWith(pw2.value)) pwShowError('password-repeat', '');
+    }
+    [pw, pw2].forEach(i => i.addEventListener('input', pwUpdate));
+    pw2.addEventListener('blur', () => {
+      if (pw2.value && pw2.value !== pw.value) pwShowError('password-repeat', 'Passwords do not match');
+    });
+    document.querySelectorAll('#screen-create-password .trail').forEach(btn => {
+      btn.addEventListener('pointerdown', e => e.preventDefault());   // не забирати фокус з поля
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        const input = document.getElementById(btn.dataset.toggle);
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.querySelector('img').src = show ? 'assets/icon-eye-open.png' : 'assets/icon-eye-closed.png';
+        btn.setAttribute('aria-pressed', String(show));
+        btn.setAttribute('aria-label', show ? 'Сховати пароль' : 'Показати пароль');
+      });
+    });
+    // Пароль: «123» додає цифру, а якщо вона вже є — спецсимвол (у макеті немає клавіатури з цифрами)
+    const passwordKeyboard = setupAlphaKeyboard('screen-create-password', {
+      inputs: [pw, pw2],
+      on123: i => (/\d/.test(i.value) ? '!' : '1'),
+      onReturn: i => {
+        if (i === pw) pw2.focus();
+        else document.getElementById('form-create-password').requestSubmit();
+      },
+    });
+    document.getElementById('form-create-password').addEventListener('submit', e => {
+      e.preventDefault();
+      if (pwContinue.disabled) return;
+      passwordKeyboard.close();
+      pinReset();
+      show('screen-create-pin');
+    });
+    document.getElementById('btn-password-back').addEventListener('click', () => { passwordKeyboard.close(); show('screen-verify-email'); });
+
+    // ---- PIN-екрани: 4 цифри з власної цифрової панелі ----
+    function setupPinScreen(screenId, { onComplete, onBack }) {
+      const screen = document.getElementById(screenId);
+      const dotsBox = screen.querySelector('.pin-dots');
+      const dots = dotsBox.querySelectorAll('span');
+      const pad = screen.querySelector('.pin-pad');
+      let value = '', locked = false;
+      const render = () => {
+        dots.forEach((d, i) => d.classList.toggle('is-filled', i < value.length));
+        dotsBox.setAttribute('aria-label', `Введено ${value.length} з 4 цифр`);
+      };
+      const api = {
+        reset() { value = ''; locked = false; pad.classList.remove('is-locked'); render(); },
+        clear() { value = ''; render(); },
+        lock() { locked = true; pad.classList.add('is-locked'); },
+      };
+      function press(k) {
+        if (locked) return;
+        if (k === 'backspace') value = value.slice(0, -1);
+        else if (value.length < 4) value += k;
+        render();
+        if (value.length === 4) { const v = value; setTimeout(() => onComplete(v, api), 150); }
+      }
+      pad.querySelectorAll('.pin-key').forEach(key => {
+        key.addEventListener('pointerdown', () => { if (!locked) key.classList.add('is-pressed'); });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => key.addEventListener(t, () => key.classList.remove('is-pressed')));
+        key.addEventListener('click', () => press(key.dataset.key));
+      });
+      // з комп'ютера можна вводити цифри зі звичайної клавіатури
+      document.addEventListener('keydown', e => {
+        if (current !== screenId) return;
+        if (/^\d$/.test(e.key)) press(e.key);
+        else if (e.key === 'Backspace') press('backspace');
+      });
+      screen.querySelector('.btn-back').addEventListener('click', onBack);
+      return api;
+    }
+
+    let createdPin = '';
+    const confirmScreen = document.getElementById('screen-confirm-pin');
+    const confirmDots = confirmScreen.querySelector('.pin-dots');
+    function confirmAlert(kind) {
+      confirmScreen.querySelectorAll('.pin-alert').forEach(a => { a.hidden = a.dataset.alert !== kind; });
+      confirmDots.classList.toggle('is-shift-short', kind === 'wrong');
+      confirmDots.classList.toggle('is-shift-long', kind === 'locked');
+    }
+    const ACCEPT_ANY_PIN = true;
+    const MAX_PIN_ATTEMPTS = 3;
+    let pinAttempts = 0;
+    const createPin = setupPinScreen('screen-create-pin', {
+      onComplete: v => { createdPin = v; pinAttempts = 0; confirmPin.reset(); confirmAlert(null); show('screen-confirm-pin'); },
+      onBack: () => show('screen-create-password'),
+    });
+    const confirmPin = setupPinScreen('screen-confirm-pin', {
+      onComplete: (v, api) => {
+        // Прототип: підходить будь-який PIN. Щоб знову вимагати збіг з першим PIN, постав ACCEPT_ANY_PIN = false
+        if (ACCEPT_ANY_PIN || v === createdPin) { confirmAlert(null); show('screen-home'); return; }
+        pinAttempts++;
+        api.clear();
+        if (pinAttempts >= MAX_PIN_ATTEMPTS) { confirmAlert('locked'); api.lock(); }
+        else confirmAlert('wrong');
+      },
+      onBack: () => { createPin.reset(); show('screen-create-pin'); },
+    });
+    function pinReset() { createPin.reset(); }
+
+    // ---- Home ----
+    const homeScreen = document.getElementById('screen-home');
+    homeScreen.querySelector('.home-scroll').addEventListener('scroll', e => {
+      homeScreen.classList.toggle('is-scrolled', e.target.scrollTop > 0);
+    });
+
+    // ---- Get Paid Now: сума виплати ----
+    const AVAILABLE_BALANCE = 10784.25, MIN_AMOUNT = 100;
+    const amountInput = document.getElementById('input-amount');
+    const amountField = document.getElementById('field-amount');
+    const amountHelp = document.getElementById('amount-help');
+    const amountContinue = document.getElementById('btn-get-paid-continue');
+    const amountChips = document.querySelectorAll('.amount-chips button');
+    const parseAmount = v => parseFloat(String(v).replace(/\s/g, '').replace(',', '.'));
+    function amountValidate(showErrors) {
+      const v = parseAmount(amountInput.value);
+      amountField.classList.toggle('is-filled', amountInput.value !== '');
+      let error = '';
+      if (amountInput.value !== '' && (isNaN(v) || v < MIN_AMOUNT)) error = 'Enter an amount from 100 ₴';
+      else if (v > AVAILABLE_BALANCE) error = 'The amount exceeds your available balance';
+      amountContinue.disabled = amountInput.value === '' || !!error;
+      const show = showErrors && !!error;
+      amountField.classList.toggle('is-error', show);
+      amountHelp.classList.toggle('is-error', show);
+      amountHelp.textContent = show ? error : 'Enter an amount from 100 ₴';
+    }
+    amountInput.addEventListener('input', () => {
+      amountInput.value = amountInput.value.replace(/[^\d.,]/g, '');
+      amountChips.forEach(c => c.classList.remove('is-selected'));
+      amountValidate(false);
+    });
+    amountInput.addEventListener('blur', () => amountValidate(true));
+    amountChips.forEach(chip => chip.addEventListener('click', () => {
+      const a = chip.dataset.amount === 'max' ? AVAILABLE_BALANCE : Number(chip.dataset.amount);
+      amountInput.value = a.toFixed(2);
+      amountChips.forEach(c => c.classList.toggle('is-selected', c === chip));
+      amountValidate(true);
+    }));
+    // iOS-клавіатура (цифри) для поля суми
+    (function setupAmountKeyboard() {
+      const screen = document.getElementById('screen-get-paid');
+      const keyboard = document.getElementById('ios-keyboard-amount');
+      const open = () => { screen.classList.add('is-keyboard'); keyboard.setAttribute('aria-hidden', 'false'); };
+      const close = () => {
+        screen.classList.remove('is-keyboard'); keyboard.setAttribute('aria-hidden', 'true');
+        if (document.activeElement === amountInput) amountInput.blur();
+      };
+      amountInput.addEventListener('focus', open);
+      let downTarget = null;
+      screen.addEventListener('pointerdown', e => { downTarget = e.target; }, true);
+      screen.addEventListener('click', () => {
+        if (downTarget && !downTarget.closest('.text-field, .ios-keyboard')) close();
+      });
+      keyboard.querySelectorAll('.kb-key').forEach(key => {
+        key.addEventListener('pointerdown', e => { e.preventDefault(); key.classList.add('is-pressed'); });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => key.addEventListener(t, () => key.classList.remove('is-pressed')));
+        key.addEventListener('click', () => {
+          const k = key.dataset.key;
+          const s = amountInput.selectionStart ?? amountInput.value.length, e = amountInput.selectionEnd ?? s;
+          if (k === 'backspace') {
+            if (s !== e) amountInput.setRangeText('', s, e, 'end');
+            else if (s > 0) amountInput.setRangeText('', s - 1, s, 'end');
+          } else amountInput.setRangeText(k, s, e, 'end');
+          amountInput.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      });
+      window.closeAmountKeyboard = close;
+    })();
+    document.getElementById('form-get-paid').addEventListener('submit', e => {
+      e.preventDefault();
+      amountValidate(true);
+      if (amountContinue.disabled) return;
+      closeAmountKeyboard();
+      fillReview(parseAmount(amountInput.value));
+      show('screen-review-transfer');
+    });
+    document.querySelector('#screen-home .get-paid').addEventListener('click', () => {
+      amountInput.value = ''; amountChips.forEach(c => c.classList.remove('is-selected')); amountValidate(false);
+      show('screen-get-paid');
+    });
+    document.getElementById('btn-get-paid-back').addEventListener('click', () => { closeAmountKeyboard(); show('screen-home'); });
+
+    // ---- Review Transfer ----
+    const TRANSFER_FEE = 123;
+    function fillReview(amount) {
+      const set = (k, t) => document.querySelectorAll(`[data-review=${k}]`).forEach(el => { el.textContent = t; });
+      set('amount', `${amount.toFixed(2)} ₴`);
+      set('fee', `${TRANSFER_FEE} ₴`);
+      set('total', `${(amount + TRANSFER_FEE).toFixed(2)} ₴`);
+    }
+    document.getElementById('btn-review-back').addEventListener('click', () => show('screen-get-paid'));
+    // Суми з пробілом між тисячами: 9 661.25
+    const fmtMoney = n => n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    function fillSuccess(amount) {
+      const set = (k, t) => document.querySelectorAll(`[data-success=${k}]`).forEach(el => { el.textContent = t; });
+      const total = amount + TRANSFER_FEE;
+      const now = new Date();
+      const date = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      set('amount', `-${amount.toFixed(2)} ₴`);
+      set('fee', `-${TRANSFER_FEE} ₴`);
+      set('remaining', `${fmtMoney(AVAILABLE_BALANCE - total)} ₴`);
+      set('datetime', `${date} at ${time}`);
+      set('total', `-${total.toFixed(2)} ₴`);
+    }
+    document.getElementById('btn-review-confirm').addEventListener('click', () => {
+      fillSuccess(parseAmount(amountInput.value) || 1000);
+      show('screen-transfer-success');
+    });
+    document.getElementById('btn-success-done').addEventListener('click', () => show('screen-home'));
+
+    // ---- Нижнє меню (Home / Transactions / Profile) ----
+    document.querySelectorAll('.tabs [data-tab]').forEach(tab => tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      if (target.startsWith('screen-') && target !== current) show(target);
+      // TODO: екран Profile
+    }));
+
+    // ---- Earnings Details ----
+    let earningsReturn = 'screen-home';
+    function openEarnings(el) {
+      earningsReturn = current;
+      document.getElementById('earn-amount').textContent = `${el.dataset.amount} ₴`;
+      document.getElementById('earn-when').textContent = `${el.dataset.date} at 13:45`;
+      show('screen-earnings');
+    }
+    document.querySelectorAll('[data-earning]').forEach(el => {
+      el.addEventListener('click', () => openEarnings(el));
+      el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEarnings(el); } });
+    });
+    document.getElementById('btn-earnings-back').addEventListener('click', () => show(earningsReturn));
+
+    // ---- Transfer Details ----
+    let tdReturn = 'screen-home', tdAmount = 1000;
+    function openTransfer(el) {
+      tdReturn = current;
+      tdAmount = Number(el.dataset.amount); const fee = Number(el.dataset.fee);
+      document.getElementById('td-when').textContent = `${el.dataset.date} at 13:45`;
+      document.getElementById('td-amount').textContent = `-${fmtMoney(tdAmount)} ₴`;
+      document.getElementById('td-fee').textContent = `${fee} ₴`;
+      document.getElementById('td-total').textContent = `-${fmtMoney(tdAmount + fee)} ₴`;
+      show('screen-transfer-details');
+    }
+    document.querySelectorAll('[data-transfer]').forEach(el => {
+      el.addEventListener('click', () => openTransfer(el));
+      el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTransfer(el); } });
+    });
+    document.getElementById('btn-td-back').addEventListener('click', () => show(tdReturn));
+    // «Repeat transfer» відкриває Get Paid Now з тією ж сумою
+    document.getElementById('btn-repeat-transfer').addEventListener('click', () => {
+      amountInput.value = tdAmount.toFixed(2);
+      amountChips.forEach(c => c.classList.remove('is-selected'));
+      amountValidate(true);
+      show('screen-get-paid');
+    });
+    document.getElementById('btn-sign-in').addEventListener('click', () => {
+      // TODO: екран входу
+      console.log('Sign in');
+    });
+
+    // ---- Відкриваємо той екран, на якому зупинились (після оновлення сторінки чи нової версії) ----
+    function getState() {
+      return { screen: current, amount: amountInput.value };
+    }
+    function start(data) {
+      let saved = data && data.screen;
+      let amount = data && data.amount;
+      try {
+        saved = saved || localStorage.getItem('tempo:screen');
+        amount = amount ?? localStorage.getItem('tempo:amount');
+      } catch (e) {}
+      if (amount) { amountInput.value = amount; amountValidate(false); fillReview(parseAmount(amount) || 1000); fillSuccess(parseAmount(amount) || 1000); }
+      show(saved && document.getElementById(saved) ? saved : 'screen-splash');
+    }
+    amountInput.addEventListener('input', () => { try { localStorage.setItem('tempo:amount', amountInput.value); } catch (e) {} });
+    window.claude?.hot?.snapshot?.(getState);
+    window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+  </script>
+</body>
+</html>
