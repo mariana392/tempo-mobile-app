@@ -905,6 +905,11 @@
     .rs-divider i { flex: 1; height: 1px; background: #e7e7e8; }
     .rs-divider img { width: 24px; height: 24px; }
     .replace-sheet .btn-rs-replace { position: static; width: 100%; height: 56px; padding: 16px 24px; }
+    /* ---- Toast «Bank account replaced» (Figma 1508:14317): повільно виїжджає справа ---- */
+    .toast { position: absolute; left: 16px; top: 722px; width: 358px; max-width: calc(100% - 32px); z-index: 6; padding: 16px 20px; display: flex; align-items: center; gap: 8px; background: #d048d0; border-radius: 8px; color: var(--white-100); font: 400 16px/24px var(--font); letter-spacing: 0.15px; transform: translateX(calc(100% + 40px)); visibility: hidden; transition: transform .9s cubic-bezier(.16, 1, .3, 1), visibility 0s linear .9s; pointer-events: none; }
+    .toast img { width: 24px; height: 24px; flex: none; }
+    .toast.is-shown { transform: translateX(0); visibility: visible; transition: transform .9s cubic-bezier(.16, 1, .3, 1); }
+    @media (prefers-reduced-motion: reduce) { .toast, .toast.is-shown { transition: none; } }
   </style>
 </head>
 <body>
@@ -1775,6 +1780,7 @@
       <button class="btn-back" type="button" id="btn-bank-added-back" aria-label="Назад"><img src="assets/btn-back.png" alt="" /></button>
       <div class="bank-card"><p id="bank-added-iban">UA86 351006 000909 6090889090054</p><span class="radio" aria-hidden="true"></span></div>
       <button class="btn-replace-bank" type="button" id="btn-replace-bank"><img src="assets/icon-card-replace.png" alt="" />Replace bank account</button>
+      <div class="toast" id="toast-bank-replaced" role="status" aria-live="polite"><img src="assets/icon-card-replace-white.png" alt="" />Bank account replaced</div>
       <div class="home-indicator" aria-hidden="true"></div>
       <!-- Replace bank account: шторка (Figma 2584:46238) -->
       <div class="bs-backdrop" id="replace-sheet-backdrop" aria-hidden="true"></div>
@@ -3280,7 +3286,17 @@
       let downT = null;   // поле може зсунутися (прокрутка над клавіатурою) між натисканням і click — дивимось, куди натиснули
       sheet.addEventListener('pointerdown', e => { downT = e.target; }, true);
       sheet.addEventListener('click', e => { const t = downT || e.target; if (!t.closest('#field-iban-new, .btn, .ios-keyboard')) closeKb(); });
-      btn.addEventListener('click', () => { setBankIban('UA' + digitsOf(input.value)); close(); });
+      const toast = document.getElementById('toast-bank-replaced');
+      let toastTimer;
+      btn.addEventListener('click', () => {
+        setBankIban('UA' + digitsOf(input.value)); close();
+        // тост виїжджає справа після того, як шторка сховалась, і через 3 с їде назад
+        clearTimeout(toastTimer); toast.classList.remove('is-shown');
+        toastTimer = setTimeout(() => {
+          toast.classList.add('is-shown');
+          toastTimer = setTimeout(() => toast.classList.remove('is-shown'), 3000);
+        }, 300);
+      });
       keyboard.querySelectorAll('.kb-key').forEach(key => {
         key.addEventListener('pointerdown', e => { e.preventDefault(); key.classList.add('is-pressed'); });
         ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => key.addEventListener(t, () => key.classList.remove('is-pressed')));
