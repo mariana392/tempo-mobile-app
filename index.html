@@ -830,6 +830,17 @@
     .tx-filters .tick { width: 24px; height: 24px; flex: none; visibility: hidden; }
     .tx-filters button[aria-pressed="true"] .tick { visibility: visible; }
     .tx-filters .home-indicator { background: #222222; }
+    /* ---- Bank account / empty (Figma 1189:19551) ---- */
+    .bank-illustration { position: absolute; left: 71px; top: 166px; width: 249px; height: 205.75px; }
+    .bank-empty-title { position: absolute; left: 0; right: 0; top: 404px; padding-left: 1px; text-align: center; font: 500 22px/28px var(--font); margin: 0; }
+    .info-banner { position: absolute; left: 16px; top: 472px; width: 358px; max-width: calc(100% - 32px); padding: 16px; background: #e3f2fd; border-radius: 8px; display: flex; flex-direction: column; gap: 12px; }
+    .info-banner .head { display: flex; align-items: center; gap: 8px; }
+    .info-banner .head img { width: 24px; height: 24px; flex: none; }
+    .info-banner h2 { margin: 0; font: 500 22px/28px var(--font); }
+    .info-banner .body { display: flex; flex-direction: column; gap: 8px; }
+    .info-banner p { margin: 0; font: 400 14px/20px var(--font); letter-spacing: 0.25px; }
+    .info-banner .btn-small { width: 100%; height: 36px; padding: 8px 24px; border: 0; border-radius: var(--radius-btn); background: var(--purple-800); color: var(--white-100); font: 500 14px/20px var(--font); letter-spacing: 0.1px; cursor: pointer; }
+    .info-banner .btn-small:focus-visible { outline: 3px solid #7be35a; outline-offset: 3px; }
   </style>
 </head>
 <body>
@@ -1636,6 +1647,27 @@
         <div class="row row--total"><span>Total deduction</span><span data-success="total">-1123.00 ₴</span></div>
       </section>
       <button class="btn btn--primary-white" type="button" id="btn-success-done" style="bottom: auto; top: 742px">Done</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Bank account / empty (Figma 1189:19551) -->
+    <main class="screen screen--white" id="screen-bank-account" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-back" type="button" id="btn-bank-back" aria-label="Назад"><img src="assets/btn-back.png" alt="" /></button>
+      <p class="nav-title">Bank account</p>
+      <img class="bank-illustration" src="assets/bank-account-empty.png" alt="" />
+      <h1 class="bank-empty-title">No bank account</h1>
+      <section class="info-banner">
+        <div class="body">
+          <div class="head"><img src="assets/icon-info-circle.png" alt="" /><h2>About bank account</h2></div>
+          <p>Your primary bank account is where all transfers will be sent by default.<br /><br />All bank account information is encrypted and stored securely. We never share your banking details.</p>
+        </div>
+        <button class="btn-small" type="button" id="btn-add-bank">Add bank account</button>
+      </section>
       <div class="home-indicator" aria-hidden="true"></div>
     </main>
 
@@ -2821,7 +2853,12 @@
     const profileScreen = document.getElementById('screen-profile');
     profileScreen.querySelector('.profile-scroll').addEventListener('scroll', e => profileScreen.classList.toggle('is-scrolled', e.target.scrollTop > 0));
     document.getElementById('btn-profile-edit').addEventListener('click', () => console.log('Edit profile'));      // TODO: екран редагування
-    document.querySelectorAll('[data-profile-item]').forEach(b => b.addEventListener('click', () => console.log(b.dataset.profileItem))); // TODO
+    document.querySelectorAll('[data-profile-item]').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.profileItem === 'Bank account') return show('screen-bank-account');
+      console.log(b.dataset.profileItem);   // TODO
+    }));
+    document.getElementById('btn-bank-back').addEventListener('click', () => show('screen-profile'));
+    document.getElementById('btn-add-bank').addEventListener('click', () => console.log('Add bank account'));   // TODO: наступний екран
     document.getElementById('btn-sign-out').addEventListener('click', () => show('screen-create-account')); // Sign out → Create your account (email)
 
     // ---- Transactions: пошук за сумою ----
