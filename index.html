@@ -687,6 +687,39 @@
     .bank-card .num { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; margin-top: 4px; }
     .td-actions { top: 640px; }
     [data-transfer] { cursor: pointer; }
+
+    /* ---- Profile (Figma 1235:22633) ---- */
+    .screen--profile { background: var(--white-100); color: var(--text-primary-black-700); }
+    .screen--profile .status-bar { z-index: 5; }
+    .screen--profile .status-bar .time { color: var(--black); }
+    .profile-content { position: relative; height: 888px; } /* кадр у Figma 888px — прокручується, таб-бар зафіксований */
+    .profile-top-band { position: absolute; left: 0; right: 0; top: 0; height: 33px; z-index: 4; background: var(--white-100); visibility: hidden; }
+    .screen--profile.is-scrolled .profile-top-band { visibility: visible; }
+    .screen--profile .btn-icon { top: 49px; }
+    .profile { position: absolute; left: 16px; right: 16px; top: 71px; display: flex; flex-direction: column; align-items: center; gap: 32px; }
+    .profile-head { width: 187px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+    .avatar { width: 64px; height: 64px; border-radius: 32px; background: var(--purple-600); color: var(--white-100); display: grid; place-items: center; font: 500 22px/28px var(--font); }
+    .profile-who { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+    .profile-who .name { font: 500 16px/24px var(--font); letter-spacing: 0.15px; }
+    .profile-who .mail { font: 400 14px/20px var(--font); letter-spacing: 0.25px; white-space: nowrap; }
+    .profile-body { width: 100%; display: flex; flex-direction: column; gap: 32px; }
+    .menu-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .menu-card {
+      width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 15px;
+      background: var(--white-100); border: 1px solid var(--progress-inactive); border-radius: 8px;
+      text-align: left; color: inherit; font-family: var(--font); cursor: pointer;
+    }
+    .menu-card .lead { display: flex; align-items: center; gap: 8px; }
+    .menu-card .pic { width: 48px; height: 48px; padding: 12px; border-radius: 8px; background: var(--gray-100); flex: none; }
+    .menu-card .pic img { display: block; width: 24px; height: 24px; }
+    .menu-card .t { display: block; font: 500 16px/24px var(--font); letter-spacing: 0.15px; }
+    .menu-card .d { display: block; margin-top: 4px; font: 400 14px/20px var(--font); letter-spacing: 0.25px; }
+    .menu-card .chevron { width: 32px; height: 32px; flex: none; }
+    .btn--outline {
+      position: static; width: 100%; background: var(--white-100); color: var(--purple-600);
+      border: 1px solid var(--purple-600);
+    }
+    .menu-card:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
   </style>
 </head>
 <body>
@@ -1371,7 +1404,7 @@
         <div class="tabs">
           <button type="button" data-tab="screen-home" class="is-active" aria-current="page"><img src="assets/tab-home.png" alt="" />Home</button>
           <button type="button" data-tab="screen-transactions"><img src="assets/tab-transactions.png" alt="" />Transactions</button>
-          <button type="button" data-tab="profile"><img src="assets/tab-profile.png" alt="" />Profile</button>
+          <button type="button" data-tab="screen-profile"><img src="assets/tab-profile.png" alt="" />Profile</button>
         </div>
         <div class="home-indicator-bar" aria-hidden="true"><span></span></div>
       </nav>
@@ -1544,7 +1577,7 @@
         <div class="tabs">
           <button type="button" data-tab="screen-home"><img src="assets/tab-home-linear.png" alt="" />Home</button>
           <button type="button" data-tab="screen-transactions" class="is-active" aria-current="page"><img src="assets/tab-transactions-active.png" alt="" />Transactions</button>
-          <button type="button" data-tab="profile"><img src="assets/tab-profile.png" alt="" />Profile</button>
+          <button type="button" data-tab="screen-profile"><img src="assets/tab-profile.png" alt="" />Profile</button>
         </div>
         <div class="home-indicator-bar" aria-hidden="true"><span></span></div>
       </nav>
@@ -1623,6 +1656,49 @@
         <button class="btn-secondary" type="button"><img src="assets/icon-support-line.png" alt="" />Ask a question</button>
       </div>
       <div class="home-indicator home-indicator--doc" aria-hidden="true"></div>
+    </main>
+
+    <!-- Screen 26: Profile (Figma 1235:22633) -->
+    <main class="screen screen--profile" id="screen-profile" aria-hidden="true">
+      <div class="status-bar status-bar--compact" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-compact.png" alt="" />
+        <img class="right" src="assets/status-right-compact.png" alt="" />
+      </div>
+      <div class="profile-top-band" aria-hidden="true"></div>
+      <div class="home-scroll profile-scroll"><div class="profile-content">
+      <button class="btn-icon" type="button" id="btn-profile-edit" aria-label="Редагувати профіль">
+        <img src="assets/btn-edit.png" alt="" />
+      </button>
+      <section class="profile">
+        <div class="profile-head">
+          <div class="avatar" aria-hidden="true">AP</div>
+          <div class="profile-who">
+            <p class="name">Andriy Petrenko</p>
+            <p class="mail">andriypetrenko@gmail.com</p>
+          </div>
+          <span class="status-chip">Verified</span>
+        </div>
+        <div class="profile-body">
+          <ul class="menu-list">
+          <li><button class="menu-card" type="button" data-profile-item="Bank account"><span class="lead"><span class="pic"><img src="assets/icon-bank-card.png" alt="" /></span><span><span class="t">Bank account</span><span class="d">Manage connected bank account</span></span></span><img class="chevron" src="assets/icon-arrow-right.png" alt="" /></button></li>
+          <li><button class="menu-card" type="button" data-profile-item="Notifications"><span class="lead"><span class="pic"><img src="assets/icon-bell-orange.png" alt="" /></span><span><span class="t">Notifications</span><span class="d">Manage notification preferences</span></span></span><img class="chevron" src="assets/icon-arrow-right.png" alt="" /></button></li>
+          <li><button class="menu-card" type="button" data-profile-item="Support service"><span class="lead"><span class="pic"><img src="assets/icon-headset.png" alt="" /></span><span><span class="t">Support service</span><span class="d">Get help and support</span></span></span><img class="chevron" src="assets/icon-arrow-right.png" alt="" /></button></li>
+          <li><button class="menu-card" type="button" data-profile-item="Security"><span class="lead"><span class="pic"><img src="assets/icon-lock.png" alt="" /></span><span><span class="t">Security</span><span class="d">Password and security settings</span></span></span><img class="chevron" src="assets/icon-arrow-right.png" alt="" /></button></li>
+          <li><button class="menu-card" type="button" data-profile-item="Legal"><span class="lead"><span class="pic"><img src="assets/icon-shield.png" alt="" /></span><span><span class="t">Legal</span><span class="d">Terms, privacy, and policies</span></span></span><img class="chevron" src="assets/icon-arrow-right.png" alt="" /></button></li>
+          </ul>
+          <button class="btn btn--outline" type="button" id="btn-sign-out">Sign out</button>
+        </div>
+      </section>
+      </div></div>
+      <nav class="tab-bar">
+        <div class="tabs">
+          <button type="button" data-tab="screen-home"><img src="assets/tab-home-linear.png" alt="" />Home</button>
+          <button type="button" data-tab="screen-transactions"><img src="assets/tab-transactions.png" alt="" />Transactions</button>
+          <button type="button" data-tab="screen-profile" class="is-active" aria-current="page"><img src="assets/tab-profile-active.png" alt="" />Profile</button>
+        </div>
+        <div class="home-indicator-bar" aria-hidden="true"><span></span></div>
+      </nav>
     </main>
 
     <div class="steps" id="account-steps" role="progressbar" aria-label="Створення акаунту" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" hidden>
@@ -2099,7 +2175,6 @@
     document.querySelectorAll('.tabs [data-tab]').forEach(tab => tab.addEventListener('click', () => {
       const target = tab.dataset.tab;
       if (target.startsWith('screen-') && target !== current) show(target);
-      // TODO: екран Profile
     }));
 
     // ---- Earnings Details ----
@@ -2143,6 +2218,13 @@
       // TODO: екран входу
       console.log('Sign in');
     });
+
+    // ---- Profile ----
+    const profileScreen = document.getElementById('screen-profile');
+    profileScreen.querySelector('.profile-scroll').addEventListener('scroll', e => profileScreen.classList.toggle('is-scrolled', e.target.scrollTop > 0));
+    document.getElementById('btn-profile-edit').addEventListener('click', () => console.log('Edit profile'));      // TODO: екран редагування
+    document.querySelectorAll('[data-profile-item]').forEach(b => b.addEventListener('click', () => console.log(b.dataset.profileItem))); // TODO
+    document.getElementById('btn-sign-out').addEventListener('click', () => console.log('Sign out'));             // TODO
 
     // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
     const phoneEl = document.querySelector('.phone');
