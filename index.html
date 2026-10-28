@@ -796,6 +796,21 @@
     .tx-nothing { position: absolute; left: 0; right: 0; top: 0; height: 0; z-index: 1; }
     .tx-nothing img { position: absolute; left: 72px; top: 174px; width: 254px; height: 240.5px; }
     .tx-nothing p { position: absolute; left: 0; right: 0; top: 440px; padding-left: 1px; text-align: center; font: 500 22px/28px var(--font); color: var(--text-primary-black-700); }
+    /* ---- Transactions: календар (Figma 633:14301) ---- */
+    .tx-tool--calendar.is-active img { content: url(assets/btn-calendar-active.png); }
+    .tx-calendar { position: absolute; left: 0; right: 0; top: 109px; bottom: 0; z-index: 5; background: var(--white-100); border-radius: 16px 16px 0 0; }
+    .tx-calendar .cal-week { position: absolute; left: 16px; top: 20px; width: 358px; display: flex; justify-content: space-between; font: 500 16px/24px var(--font); color: #635d63; }
+    .tx-calendar .cal-week span, .cal-row span { width: 38px; text-align: center; }
+    .tx-calendar .cal-scroll { position: absolute; left: 16px; top: 61px; width: 361px; bottom: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 32px; padding-bottom: 46px; }
+    .tx-calendar .cal-scroll::-webkit-scrollbar { display: none; }
+    .cal-month { display: flex; flex-direction: column; gap: 8px; flex: none; }
+    .cal-month h4 { font: 500 14px/20px var(--font); color: #211e21; margin: 0; }
+    .cal-grid { height: 284px; display: flex; flex-direction: column; justify-content: space-between; }
+    .cal-row { display: flex; justify-content: space-between; }
+    .cal-row span { height: 39px; display: flex; align-items: center; justify-content: center; font: 400 16px/24px var(--font); color: #211e21; }
+    .cal-row span.is-today { color: #939; font-weight: 500; }
+    .cal-row span.is-disabled { color: #d2ced2; }
+    .tx-calendar .home-indicator { background: #222222; z-index: 1; }
   </style>
 </head>
 <body>
@@ -1617,13 +1632,19 @@
       <!-- Режим пошуку (Figma 624:6718) -->
       <div class="tx-search-bar" hidden>
         <button class="tx-tool tx-tool--extra" type="button" style="left:16px" aria-label="Фільтри"><img src="assets/btn-filter.png" alt="" /></button>
-        <button class="tx-tool tx-tool--extra" type="button" style="left:64px" aria-label="Період"><img src="assets/btn-calendar.png" alt="" /></button>
+        <button class="tx-tool tx-tool--extra tx-tool--calendar" type="button" style="left:64px" id="btn-tx-calendar" aria-label="Період" aria-pressed="false"><img src="assets/btn-calendar.png" alt="" /></button>
         <button class="tx-tool tx-tool--expand" type="button" style="left:16px" id="btn-tx-search-tools" aria-label="Показати фільтри"><img src="assets/btn-arrow-right-dark.png" alt="" /></button>
         <label class="tx-search-field" for="input-tx-search">
           <img src="assets/icon-search-white.png" alt="" />
           <input type="text" id="input-tx-search" inputmode="none" placeholder="Search" autocomplete="off" aria-label="Пошук за сумою" />
         </label>
         <button class="tx-tool" type="button" style="left:334px" id="btn-tx-search-close" aria-label="Закрити пошук"><img src="assets/btn-close-dark.png" alt="" /></button>
+      </div>
+      <!-- Календар (Figma 633:14301) -->
+      <div class="tx-calendar" hidden>
+        <div class="cal-week"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+        <div class="cal-scroll"></div>
+        <div class="home-indicator" aria-hidden="true"></div>
       </div>
       <div class="sheet" aria-hidden="true"></div>
       <!-- Нічого не знайдено (Figma 629:13799) -->
@@ -2818,6 +2839,36 @@
           input.dispatchEvent(new Event('input', { bubbles: true }));
         });
       });
+      // ---- Календар (Figma 633:14301): місяці як у макеті, сьогодні — 14 квітня, майбутні дні неактивні ----
+      const calBtn = document.getElementById('btn-tx-calendar');
+      const cal = screen.querySelector('.tx-calendar');
+      const calScroll = cal.querySelector('.cal-scroll');
+      [{ label: '', days: 29, first: 6 }, { label: 'April', days: 30, first: 6, today: 14 }].forEach(m => {
+        const month = document.createElement('section'); month.className = 'cal-month';
+        if (m.label) month.innerHTML = `<h4>${m.label}</h4>`;
+        const grid = document.createElement('div'); grid.className = 'cal-grid';
+        const cells = Array(m.first).fill('').concat(Array.from({ length: m.days }, (_, i) => i + 1));
+        for (let r = 0; r < cells.length; r += 7) {
+          const row = document.createElement('div'); row.className = 'cal-row';
+          for (let c = 0; c < 7; c++) {
+            const d = cells[r + c], span = document.createElement('span');
+            if (d) {
+              span.textContent = d === 1 ? '01' : d;
+              if (m.today && d === m.today) span.className = 'is-today';
+              else if (m.today && d > m.today) span.className = 'is-disabled';
+            }
+            row.appendChild(span);
+          }
+          grid.appendChild(row);
+        }
+        month.appendChild(grid); calScroll.appendChild(month);
+      });
+      function setCalendar(on) {
+        cal.hidden = !on; calBtn.classList.toggle('is-active', on); calBtn.setAttribute('aria-pressed', String(on));
+        if (on) closeKb();
+      }
+      calBtn.addEventListener('click', () => setCalendar(cal.hidden));
+      document.getElementById('btn-tx-search-close').addEventListener('click', () => setCalendar(false));
     })();
 
     // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
