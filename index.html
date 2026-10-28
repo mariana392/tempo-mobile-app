@@ -2224,7 +2224,7 @@
     profileScreen.querySelector('.profile-scroll').addEventListener('scroll', e => profileScreen.classList.toggle('is-scrolled', e.target.scrollTop > 0));
     document.getElementById('btn-profile-edit').addEventListener('click', () => console.log('Edit profile'));      // TODO: екран редагування
     document.querySelectorAll('[data-profile-item]').forEach(b => b.addEventListener('click', () => console.log(b.dataset.profileItem))); // TODO
-    document.getElementById('btn-sign-out').addEventListener('click', () => console.log('Sign out'));             // TODO
+    document.getElementById('btn-sign-out').addEventListener('click', () => show('screen-create-account')); // Sign out → Create your account (email)
 
     // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
     const phoneEl = document.querySelector('.phone');
