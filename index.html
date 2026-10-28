@@ -2705,8 +2705,8 @@
       show('screen-password-changed');
     });
     document.getElementById('btn-new-password-back').addEventListener('click', () => { npKeyboard.close(); show('screen-reset-verify'); });
-    // Done → назад на вхід (Sign in)
-    document.getElementById('btn-password-changed-done').addEventListener('click', () => { siPass.value = ''; siUpdate(); show('screen-sign-in'); });
+    // Done → в додаток, на головний екран
+    document.getElementById('btn-password-changed-done').addEventListener('click', () => show('screen-home'));
 
     // ---- Profile ----
     const profileScreen = document.getElementById('screen-profile');
