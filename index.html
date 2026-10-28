@@ -799,18 +799,27 @@
     /* ---- Transactions: календар (Figma 633:14301) ---- */
     .tx-tool--calendar.is-active img { content: url(assets/btn-calendar-active.png); }
     .tx-calendar { position: absolute; left: 0; right: 0; top: 109px; bottom: 0; z-index: 5; background: var(--white-100); border-radius: 16px 16px 0 0; }
-    .tx-calendar .cal-week { position: absolute; left: 16px; top: 20px; width: 358px; display: flex; justify-content: space-between; font: 500 16px/24px var(--font); color: #635d63; }
+    .tx-calendar .cal-head { position: absolute; left: 16px; top: 20px; width: 358px; z-index: 2; background: var(--white-100); padding-bottom: 16px; display: flex; flex-direction: column; gap: 24px; }
+    .tx-calendar .cal-range { font: 400 14px/20px var(--font); letter-spacing: 0.25px; color: #211e21; margin: 0; }
+    .tx-calendar .cal-week { display: flex; justify-content: space-between; font: 500 16px/24px var(--font); letter-spacing: 0.15px; color: #635d63; }
     .tx-calendar .cal-week span, .cal-row span { width: 38px; text-align: center; }
-    .tx-calendar .cal-scroll { position: absolute; left: 16px; top: 61px; width: 361px; bottom: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 32px; padding-bottom: 46px; }
+    .tx-calendar .cal-scroll { position: absolute; left: 16px; top: 20px; width: 361px; bottom: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 32px; padding: 41px 0 46px; }
+    .tx-calendar.has-range .cal-scroll { padding-bottom: 120px; }
     .tx-calendar .cal-scroll::-webkit-scrollbar { display: none; }
     .cal-month { display: flex; flex-direction: column; gap: 8px; flex: none; }
-    .cal-month h4 { font: 500 14px/20px var(--font); color: #211e21; margin: 0; }
+    .cal-month h4 { font: 500 14px/20px var(--font); letter-spacing: 0.1px; color: #211e21; margin: 0; }
     .cal-grid { height: 284px; display: flex; flex-direction: column; justify-content: space-between; }
     .cal-row { display: flex; justify-content: space-between; }
-    .cal-row span { height: 39px; display: flex; align-items: center; justify-content: center; font: 400 16px/24px var(--font); color: #211e21; }
+    .cal-row span { position: relative; height: 39px; border-radius: 100px; display: flex; align-items: center; justify-content: center; font: 400 16px/24px var(--font); letter-spacing: 0.15px; color: #211e21; }
+    .cal-row span[data-day] { cursor: pointer; }
     .cal-row span.is-today { color: #939; font-weight: 500; }
-    .cal-row span.is-disabled { color: #d2ced2; }
-    .tx-calendar .home-indicator { background: #222222; z-index: 1; }
+    .cal-row span.is-disabled { color: #d2ced2; cursor: default; }
+    /* вибраний період (Figma 634:15383): заливка purple/400, суміжні дні в рядку зливаються в одну «таблетку» */
+    .cal-row span.is-sel { background: #d048d0; color: var(--white-100); font-weight: 400; }
+    .cal-row span.is-join::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; right: -36px; background: #d048d0; z-index: -1; }
+    .tx-calendar .btn-cal-show { top: 633px; /* 742 на екрані */ bottom: auto; z-index: 2; }
+    .tx-calendar .cal-home { position: absolute; left: 0; right: 0; bottom: 0; height: 28px; background: var(--white-100); z-index: 2; }
+    .tx-calendar .home-indicator { background: #222222; z-index: 3; }
   </style>
 </head>
 <body>
@@ -1642,8 +1651,13 @@
       </div>
       <!-- Календар (Figma 633:14301) -->
       <div class="tx-calendar" hidden>
-        <div class="cal-week"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+        <div class="cal-head">
+          <p class="cal-range" hidden></p>
+          <div class="cal-week"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+        </div>
         <div class="cal-scroll"></div>
+        <button class="btn btn--primary btn-cal-show" type="button" id="btn-tx-calendar-show" hidden>Show</button>
+        <div class="cal-home" aria-hidden="true"></div>
         <div class="home-indicator" aria-hidden="true"></div>
       </div>
       <div class="sheet" aria-hidden="true"></div>
@@ -2801,13 +2815,16 @@
       const list = screen.querySelector('.tx-list');
       const nothing = screen.querySelector('.tx-nothing');
       const digits = t => t.replace(/[^0-9.]/g, '');
+      let dateRange = null;   // [від, до] з календаря, ключі yyyymmdd (місяць з 0)
+      const txKey = tx => { const d = new Date(tx.dataset.date); return d.getFullYear() * 10000 + d.getMonth() * 100 + d.getDate(); };
       function filter() {
         const q = digits(input.value);
         let any = false;
         list.querySelectorAll('.tx-day').forEach(day => {
           let shown = 0;
           day.querySelectorAll('.tx').forEach(tx => {
-            const ok = !q || digits(tx.querySelector('.sum').textContent).includes(q);
+            const ok = (!q || digits(tx.querySelector('.sum').textContent).includes(q))
+              && (!dateRange || (tx.dataset.date && txKey(tx) >= dateRange[0] && txKey(tx) <= dateRange[1]));
             tx.hidden = !ok; if (ok) shown++;
           });
           day.hidden = shown === 0; if (shown) any = true;
@@ -2839,23 +2856,32 @@
           input.dispatchEvent(new Event('input', { bubbles: true }));
         });
       });
-      // ---- Календар (Figma 633:14301): місяці як у макеті, сьогодні — 14 квітня, майбутні дні неактивні ----
+      // ---- Календар (Figma 633:14301 / 634:15383): сьогодні — 14 квітня (фіолетове), майбутні дні неактивні; вибір періоду ----
       const calBtn = document.getElementById('btn-tx-calendar');
       const cal = screen.querySelector('.tx-calendar');
       const calScroll = cal.querySelector('.cal-scroll');
-      [{ label: '', days: 29, first: 6 }, { label: 'April', days: 30, first: 6, today: 14 }].forEach(m => {
+      const calRangeText = cal.querySelector('.cal-range');
+      const calShow = document.getElementById('btn-tx-calendar-show');
+      const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const key = (y, m, d) => y * 10000 + m * 100 + d;
+      const fmt = k => `${MONTHS[Math.floor(k / 100) % 100]} ${k % 100}, ${Math.floor(k / 10000)}`;
+      const TODAY = key(2026, 3, 14);
+      // Лютий (транзакції) вище за макетом — видно, якщо прокрутити вгору
+      [{ y: 2026, m: 1, days: 28, first: 0 }, { y: 2026, m: 2, days: 29, first: 6, anchor: true }, { y: 2026, m: 3, days: 30, first: 6 }].forEach(mo => {
         const month = document.createElement('section'); month.className = 'cal-month';
-        if (m.label) month.innerHTML = `<h4>${m.label}</h4>`;
+        month.innerHTML = `<h4>${MONTHS[mo.m]}</h4>`;
         const grid = document.createElement('div'); grid.className = 'cal-grid';
-        const cells = Array(m.first).fill('').concat(Array.from({ length: m.days }, (_, i) => i + 1));
+        if (mo.anchor) grid.dataset.anchor = '';
+        const cells = Array(mo.first).fill(0).concat(Array.from({ length: mo.days }, (_, i) => i + 1));
         for (let r = 0; r < cells.length; r += 7) {
           const row = document.createElement('div'); row.className = 'cal-row';
           for (let c = 0; c < 7; c++) {
             const d = cells[r + c], span = document.createElement('span');
             if (d) {
+              const k = key(mo.y, mo.m, d);
               span.textContent = d === 1 ? '01' : d;
-              if (m.today && d === m.today) span.className = 'is-today';
-              else if (m.today && d > m.today) span.className = 'is-disabled';
+              if (k === TODAY) span.classList.add('is-today');
+              if (k > TODAY) span.classList.add('is-disabled'); else span.dataset.day = k;
             }
             row.appendChild(span);
           }
@@ -2863,12 +2889,44 @@
         }
         month.appendChild(grid); calScroll.appendChild(month);
       });
+      let selStart = null, selEnd = null;
+      function paintRange() {
+        const lo = selStart, hi = selEnd ?? selStart;
+        calScroll.querySelectorAll('.cal-row').forEach(row => {
+          const spans = [...row.children];
+          spans.forEach((sp, i) => {
+            const k = +sp.dataset.day, on = !!lo && k >= lo && k <= hi;
+            sp.classList.toggle('is-sel', on);
+            const next = spans[i + 1], nk = next && +next.dataset.day;
+            sp.classList.toggle('is-join', on && !!nk && nk >= lo && nk <= hi);
+          });
+        });
+        calRangeText.hidden = !lo;
+        calRangeText.textContent = !lo ? '' : (hi === lo ? fmt(lo) : `${fmt(lo)} - ${fmt(hi)}`);
+        cal.classList.toggle('has-range', !!lo); calShow.hidden = !lo;
+      }
+      calScroll.addEventListener('click', e => {
+        const sp = e.target.closest('span[data-day]'); if (!sp) return;
+        const k = +sp.dataset.day;
+        if (selStart === null || selEnd !== null) { selStart = k; selEnd = null; }
+        else if (k === selStart) { selStart = null; }
+        else { selEnd = Math.max(k, selStart); selStart = Math.min(k, selStart); }
+        paintRange();
+      });
       function setCalendar(on) {
         cal.hidden = !on; calBtn.classList.toggle('is-active', on); calBtn.setAttribute('aria-pressed', String(on));
-        if (on) closeKb();
+        if (on) {
+          closeKb();
+          const anchor = calScroll.querySelector('[data-anchor]');
+          calScroll.scrollTop = anchor.offsetTop - 41;
+        }
       }
       calBtn.addEventListener('click', () => setCalendar(cal.hidden));
-      document.getElementById('btn-tx-search-close').addEventListener('click', () => setCalendar(false));
+      calShow.addEventListener('click', () => {
+        dateRange = selStart ? [selStart, selEnd ?? selStart] : null;
+        setCalendar(false); filter();
+      });
+      document.getElementById('btn-tx-search-close').addEventListener('click', () => { selStart = selEnd = null; dateRange = null; paintRange(); setCalendar(false); filter(); });
     })();
 
     // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
