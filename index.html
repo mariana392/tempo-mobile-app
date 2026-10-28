@@ -2951,9 +2951,10 @@
       }
       filtBtn.addEventListener('click', () => setFilters(filtPanel.hidden));
       filtPanel.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => {
-        const t = b.dataset.filter, on = !typeFilter.has(t);
-        on ? typeFilter.add(t) : typeFilter.delete(t);
-        b.setAttribute('aria-pressed', String(on)); filter();
+        const t = b.dataset.filter, on = !typeFilter.has(t);   // лише одна опція; повторне натискання знімає вибір
+        typeFilter.clear(); if (on) typeFilter.add(t);
+        filtPanel.querySelectorAll('[data-filter]').forEach(x => x.setAttribute('aria-pressed', String(typeFilter.has(x.dataset.filter))));
+        filter();
       }));
       calShow.addEventListener('click', () => {
         dateRange = selStart ? [selStart, selEnd ?? selStart] : null;
