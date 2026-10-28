@@ -877,12 +877,21 @@
     .replace-sheet { touch-action: auto; }
     .replace-sheet .rs-scroll { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; border-radius: inherit; }
     .replace-sheet .rs-scroll::-webkit-scrollbar { display: none; }
-    .replace-sheet.kb-pad .rs-scroll { padding-bottom: 291px; }
+    /* з клавіатурою (Figma 2584:46362): без піктограми й банера, кнопка над клавіатурою */
+    .replace-sheet.kb-pad .rs-scroll { overflow: hidden; }
+    .replace-sheet.kb-pad .bs-head img, .replace-sheet.kb-pad .warn-banner { display: none; }
+    .replace-sheet.kb-pad .rs-top { gap: 32px; }
+    .replace-sheet.kb-pad .rs-content { width: 358px; }
+    .replace-sheet.kb-pad .btn-rs-replace { position: absolute; left: 16px; top: 404px; width: 358px; max-width: calc(100% - 32px); }
+    /* «UA» сірим перед номером (як у макеті) */
+    .text-field .prefix { display: none; font: 400 16px/24px var(--font); letter-spacing: 0.15px; color: #9e9d9d; }
+    #field-iban-new:focus-within .prefix, #field-iban-new.is-filled .prefix { display: block; }
+    #input-iban-new { color: #22002b; }
     .replace-sheet .bs-close { z-index: 1; }
     .rs-content { margin: 44px 0 40px 16px; width: 360px; max-width: calc(100% - 30px); display: flex; flex-direction: column; gap: 40px; }
     .rs-top { display: flex; flex-direction: column; gap: 24px; }
     .rs-intro { display: flex; flex-direction: column; gap: 12px; }
-    .rs-intro p { margin: 0; text-align: center; font: 400 16px/24px var(--font); letter-spacing: 0.15px; }
+    .rs-intro p { margin: 0 -3px; text-align: center; font: 400 16px/24px var(--font); letter-spacing: 0.15px; }
     .rs-main { display: flex; flex-direction: column; gap: 32px; }
     .warn-banner { padding: 16px; background: #fff8e1; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
     .warn-banner h3 { margin: 0; font: 500 22px/28px var(--font); }
@@ -1797,7 +1806,7 @@
                   <div class="rs-divider" aria-hidden="true"><i></i><img src="assets/icon-refresh-circle.png" alt="" /><i></i></div>
                   <label class="text-field" id="field-iban-new" for="input-iban-new">
                     <img class="lead" src="assets/icon-card-outline.png" alt="" />
-                    <input type="text" id="input-iban-new" inputmode="none" autocomplete="off" spellcheck="false" />
+                    <span class="prefix">UA</span><input type="text" id="input-iban-new" inputmode="none" autocomplete="off" spellcheck="false" />
                     <span class="label">IBAN (new account)</span>
                   </label>
                 </div>
@@ -3241,8 +3250,9 @@
       const btn = document.getElementById('btn-replace-confirm');
       const keyboard = document.getElementById('ios-keyboard-iban-new');
       const MAX = 27;
-      const fmt = d => d ? ('UA' + d).replace(/(.{4})(?=.)/g, '$1 ') : '';
-      const digitsOf = v => v.replace(/^UA/i, '').replace(/\D/g, '').slice(0, MAX);
+      // формат як у макеті: UA|86 351006 000909 60908090054 («UA» — окремо, сірим)
+      const fmt = d => [d.slice(0, 2), d.slice(2, 8), d.slice(8, 14), d.slice(14)].filter(Boolean).join(' ');
+      const digitsOf = v => v.replace(/\D/g, '').slice(0, MAX);
       function update() {
         const d = digitsOf(input.value);
         input.value = fmt(d);
@@ -3252,10 +3262,7 @@
       }
       function openKb() {
         screen.classList.add('is-keyboard'); keyboard.setAttribute('aria-hidden', 'false'); sheet.classList.add('kb-pad');
-        // поле над клавіатурою (клавіатура починається на 553 px екрана = 470 px шторки)
-        const f = field.getBoundingClientRect(), sh = sheet.getBoundingClientRect(), k = sh.height / sheet.offsetHeight || 1;
-        const bottom = (f.bottom - sh.top) / k + 12;
-        if (bottom > 470) scroller.scrollTop += bottom - 470;
+        scroller.scrollTop = 0;
       }
       function closeKb() { screen.classList.remove('is-keyboard'); keyboard.setAttribute('aria-hidden', 'true'); sheet.classList.remove('kb-pad'); if (document.activeElement === input) input.blur(); }
       function open() {
