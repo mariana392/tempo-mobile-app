@@ -760,11 +760,11 @@
     .account--new-password { top: 107px; }
     .terms-note { position: absolute; left: 16px; top: 678px; width: 360px; max-width: calc(100% - 30px); font-size: 12px; line-height: 16px; letter-spacing: 0.4px; color: var(--text-primary-black-700); }
     .terms-note a { color: var(--otp-focus); text-decoration: underline; text-decoration-skip-ink: none; }
-    /* з клавіатурою (окремого макета немає): як Create a password у реєстрації */
-    #screen-new-password.is-keyboard .account { top: 149px; }
+    /* з клавіатурою */
+    #screen-new-password.is-keyboard .account { top: 121px; }   /* Figma 233:5818 */
     #screen-new-password.is-keyboard .account .copy,
-    #screen-new-password.is-keyboard .account .pictogram,
-    #screen-new-password.is-keyboard .terms-note { display: none; }
+    #screen-new-password.is-keyboard .account .pictogram { display: none; }
+    #screen-new-password.is-keyboard .terms-note { top: 433px; }
     #screen-new-password.is-keyboard .btn--password { top: 485px; }
   </style>
 </head>
