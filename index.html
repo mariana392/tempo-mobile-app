@@ -720,6 +720,14 @@
       border: 1px solid var(--purple-600);
     }
     .menu-card:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
+
+    /* ---- Sign in or create your account (Figma 226:7593) ---- */
+    .account--sign-in { top: 105px; }
+    .sign-in-form { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+    .link-btn { padding: 0; border: 0; background: none; cursor: pointer; font: 500 12px/16px var(--font); letter-spacing: 0.5px; color: var(--purple-600); }
+    .link-btn:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
+    #screen-sign-in.is-keyboard .account { top: 125px; }
+    #screen-sign-in.is-keyboard .account .copy { display: none; }
   </style>
 </head>
 <body>
@@ -1701,6 +1709,82 @@
       </nav>
     </main>
 
+    <!-- Screen 27: Sign in or create your account (Figma 226:7593) -->
+    <main class="screen screen--white" id="screen-sign-in" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <button class="btn-back" type="button" id="btn-sign-in-back" aria-label="Назад">
+        <img src="assets/btn-back.png" alt="" />
+      </button>
+      <section class="account account--sign-in">
+        <img class="pictogram" src="assets/pictogram-logout.png" alt="" />
+        <form class="sign-in-form" id="form-sign-in" novalidate>
+          <div class="account-form">
+            <div class="copy">
+              <h1>Sign in or create your account</h1>
+              <p>Not sure if you have an account? Enter your email and we’ll check for you.</p>
+            </div>
+            <div class="password-fields">
+              <label class="text-field text-field--plain" id="field-sign-in-email" for="input-sign-in-email">
+                <input type="text" id="input-sign-in-email" autocomplete="email" inputmode="none" autocapitalize="off" spellcheck="false" />
+                <span class="label">Email</span>
+              </label>
+              <label class="text-field text-field--plain" id="field-sign-in-password" for="input-sign-in-password">
+                <input type="password" id="input-sign-in-password" autocomplete="current-password" inputmode="none" />
+                <span class="label">Password</span>
+                <button type="button" class="trail" data-toggle="input-sign-in-password" aria-label="Показати пароль" aria-pressed="false">
+                  <img src="assets/icon-eye-closed.png" alt="" />
+                </button>
+              </label>
+            </div>
+          </div>
+          <button class="link-btn" type="button" id="btn-forgot-password">Forgot password?</button>
+        </form>
+      </section>
+      <div class="otp-actions">
+        <button class="btn btn--primary" type="submit" form="form-sign-in" id="btn-sign-in-continue" disabled>Continue</button>
+        <button class="btn btn--text" type="button" id="btn-sign-in-create">Create account</button>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+      <div class="ios-keyboard" id="ios-keyboard-sign-in" aria-hidden="true">
+        <img class="ios-keyboard-img" src="assets/keyboard-alphabetic.png" alt="" />
+        <button type="button" class="kb-key" data-key="q" style="left:5px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="q"></button>
+        <button type="button" class="kb-key" data-key="w" style="left:43px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="w"></button>
+        <button type="button" class="kb-key" data-key="e" style="left:82px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="e"></button>
+        <button type="button" class="kb-key" data-key="r" style="left:120px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="r"></button>
+        <button type="button" class="kb-key" data-key="t" style="left:159px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="t"></button>
+        <button type="button" class="kb-key" data-key="y" style="left:197px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="y"></button>
+        <button type="button" class="kb-key" data-key="u" style="left:236px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="u"></button>
+        <button type="button" class="kb-key" data-key="i" style="left:275px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="i"></button>
+        <button type="button" class="kb-key" data-key="o" style="left:313px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="o"></button>
+        <button type="button" class="kb-key" data-key="p" style="left:352px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="p"></button>
+        <button type="button" class="kb-key" data-key="a" style="left:24px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="a"></button>
+        <button type="button" class="kb-key" data-key="s" style="left:63px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="s"></button>
+        <button type="button" class="kb-key" data-key="d" style="left:101px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="d"></button>
+        <button type="button" class="kb-key" data-key="f" style="left:140px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="f"></button>
+        <button type="button" class="kb-key" data-key="g" style="left:178px;top:62px;width:35px;height:42px" tabindex="-1" aria-label="g"></button>
+        <button type="button" class="kb-key" data-key="h" style="left:218px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="h"></button>
+        <button type="button" class="kb-key" data-key="j" style="left:256px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="j"></button>
+        <button type="button" class="kb-key" data-key="k" style="left:295px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="k"></button>
+        <button type="button" class="kb-key" data-key="l" style="left:333px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="l"></button>
+        <button type="button" class="kb-key" data-key="shift" style="left:5px;top:118px;width:42px;height:42px" tabindex="-1" aria-label="Shift"></button>
+        <button type="button" class="kb-key" data-key="z" style="left:61px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="z"></button>
+        <button type="button" class="kb-key" data-key="x" style="left:100px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="x"></button>
+        <button type="button" class="kb-key" data-key="c" style="left:139px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="c"></button>
+        <button type="button" class="kb-key" data-key="v" style="left:178px;top:118px;width:35px;height:42px" tabindex="-1" aria-label="v"></button>
+        <button type="button" class="kb-key" data-key="b" style="left:218px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="b"></button>
+        <button type="button" class="kb-key" data-key="n" style="left:257px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="n"></button>
+        <button type="button" class="kb-key" data-key="m" style="left:296px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="m"></button>
+        <button type="button" class="kb-key" data-key="backspace" style="left:344px;top:118px;width:42px;height:42px" tabindex="-1" aria-label="Видалити"></button>
+        <button type="button" class="kb-key" data-key="123" style="left:5px;top:174px;width:86px;height:42px" tabindex="-1" aria-label="Символи"></button>
+        <button type="button" class="kb-key" data-key="space" style="left:97px;top:174px;width:197px;height:42px" tabindex="-1" aria-label="Пробіл"></button>
+        <button type="button" class="kb-key" data-key="return" style="left:299px;top:174px;width:86px;height:42px" tabindex="-1" aria-label="Готово"></button>
+      </div>
+    </main>
+
     <div class="steps" id="account-steps" role="progressbar" aria-label="Створення акаунту" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" hidden>
       <span style="width:68px"></span><span style="width:67px"></span><span style="width:67px"></span><span style="width:66px"></span><span style="width:66px"></span>
       <i class="steps-active" aria-hidden="true"></i>
@@ -2214,10 +2298,40 @@
       amountValidate(true);
       show('screen-get-paid');
     });
-    document.getElementById('btn-sign-in').addEventListener('click', () => {
-      // TODO: екран входу
-      console.log('Sign in');
+    // ---- Sign in or create your account ----
+    const siEmail = document.getElementById('input-sign-in-email');
+    const siPass = document.getElementById('input-sign-in-password');
+    const siContinue = document.getElementById('btn-sign-in-continue');
+    function siUpdate() {
+      [siEmail, siPass].forEach(i => i.closest('.text-field').classList.toggle('is-filled', i.value !== ''));
+      siContinue.disabled = !(isEmail(siEmail.value) && siPass.value !== '');
+    }
+    [siEmail, siPass].forEach(i => i.addEventListener('input', siUpdate));
+    const signInKeyboard = setupAlphaKeyboard('screen-sign-in', {
+      inputs: [siEmail, siPass],
+      on123: i => (i === siEmail ? (i.value.includes('@') ? '.' : '@') : (/\d/.test(i.value) ? '!' : '1')),
+      onReturn: i => { if (i === siEmail) siPass.focus(); else document.getElementById('form-sign-in').requestSubmit(); },
     });
+    const siToggle = document.querySelector('#screen-sign-in .trail');
+    siToggle.addEventListener('pointerdown', e => e.preventDefault());
+    siToggle.addEventListener('click', e => {
+      e.preventDefault();
+      const showPw = siPass.type === 'password';
+      siPass.type = showPw ? 'text' : 'password';
+      siToggle.querySelector('img').src = showPw ? 'assets/icon-eye-open.png' : 'assets/icon-eye-closed.png';
+      siToggle.setAttribute('aria-pressed', String(showPw));
+      siToggle.setAttribute('aria-label', showPw ? 'Сховати пароль' : 'Показати пароль');
+    });
+    document.getElementById('form-sign-in').addEventListener('submit', e => {
+      e.preventDefault();
+      if (siContinue.disabled) return;
+      signInKeyboard.close();
+      show('screen-home');   // вхід → головний екран
+    });
+    document.getElementById('btn-sign-in').addEventListener('click', () => { closeAlphaKeyboard(); show('screen-sign-in'); });
+    document.getElementById('btn-sign-in-back').addEventListener('click', () => { signInKeyboard.close(); show('screen-create-account'); });
+    document.getElementById('btn-sign-in-create').addEventListener('click', () => { signInKeyboard.close(); show('screen-create-account'); });
+    document.getElementById('btn-forgot-password').addEventListener('click', () => console.log('Forgot password'));   // TODO
 
     // ---- Profile ----
     const profileScreen = document.getElementById('screen-profile');
