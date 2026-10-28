@@ -48,31 +48,34 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     [hidden] { display: none !important; }
-    html, body { min-height: 100%; }
+    html, body { height: 100%; }
     body {
       background: #141014;
       display: grid;
       place-items: center;
-      padding-block: 24px;
-      padding-left: max(16px, env(safe-area-inset-left, 0px));
-      padding-right: max(16px, env(safe-area-inset-right, 0px));
+      height: 100dvh;
+      overflow: hidden;
       font-family: var(--font);
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Телефон 390×844 */
+    /* Телефон 390×844 — завжди цілий екран, масштабується під вікно (--fit рахує JS) */
     .phone {
       position: relative;
       width: 390px;
-      max-width: 100%;
       height: 844px;
+      flex-shrink: 0;
       overflow: hidden;
       border-radius: 40px;
       box-shadow: 0 0 0 10px #2a222a, 0 30px 80px rgba(0,0,0,.5);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(var(--fit, 1));
+      transform-origin: center;
     }
     @media (max-width: 430px) {
-      body { padding: 0; display: block; }
-      .phone { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+      .phone { border-radius: 0; box-shadow: none; }
     }
 
     /* Екрани */
@@ -2141,14 +2144,29 @@
       console.log('Sign in');
     });
 
+    // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
+    const phoneEl = document.querySelector('.phone');
+    function fitPhone() {
+      const vw = window.visualViewport ? visualViewport.width : innerWidth;
+      const vh = window.visualViewport ? visualViewport.height : innerHeight;
+      const mobile = vw <= 430;
+      const s = Math.min(1, (vw - (mobile ? 0 : 52)) / 390, (vh - (mobile ? 0 : 68)) / 844);
+      phoneEl.style.setProperty('--fit', s.toFixed(4));
+    }
+    fitPhone();
+    addEventListener('resize', fitPhone);
+    window.visualViewport?.addEventListener('resize', fitPhone);
+
     // ---- Відкриваємо той екран, на якому зупинились (після оновлення сторінки чи нової версії) ----
     function getState() {
       return { screen: current, amount: amountInput.value };
     }
     function start(data) {
-      let saved = data && data.screen;
-      let amount = data && data.amount;
-      try {
+      const isLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+      let saved = isLocal && data && data.screen;
+      let amount = isLocal && data ? data.amount : undefined;
+      // На localhost пам'ятаємо екран між перезавантаженнями; у посиланні прототип відкривається з початку
+      if (isLocal) try {
         saved = saved || localStorage.getItem('tempo:screen');
         amount = amount ?? localStorage.getItem('tempo:amount');
       } catch (e) {}
