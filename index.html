@@ -729,6 +729,13 @@
     .link-btn:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
     #screen-sign-in.is-keyboard .account { top: 113px; }   /* Figma 226:7710 */
     #screen-sign-in.is-keyboard .account .copy { display: none; }
+
+    /* ---- Enter PIN code (Figma 226:9946) ---- */
+    .enter-pin-title { position: absolute; left: 16px; right: 16px; top: 143px; text-align: center; font: 500 22px/28px var(--font); }
+    .enter-pin-dots { top: 260px; }
+    .face-id { width: 89px; height: 89px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; border-radius: 50%; }
+    .face-id img { width: 60px; height: 60px; display: block; }
+    .face-id:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
   </style>
 </head>
 <body>
@@ -1786,6 +1793,34 @@
       </div>
     </main>
 
+    <!-- Screen 28: Enter PIN code — вхід (Figma 226:9946) -->
+    <main class="screen screen--white" id="screen-enter-pin" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <h1 class="enter-pin-title">Enter PIN code</h1>
+      <div class="pin-dots enter-pin-dots" role="status" aria-label="Введено 0 з 4 цифр">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="pin-pad">
+        <button type="button" class="pin-key" data-key="1">1</button>
+        <button type="button" class="pin-key" data-key="2">2</button>
+        <button type="button" class="pin-key" data-key="3">3</button>
+        <button type="button" class="pin-key" data-key="4">4</button>
+        <button type="button" class="pin-key" data-key="5">5</button>
+        <button type="button" class="pin-key" data-key="6">6</button>
+        <button type="button" class="pin-key" data-key="7">7</button>
+        <button type="button" class="pin-key" data-key="8">8</button>
+        <button type="button" class="pin-key" data-key="9">9</button>
+        <button type="button" class="face-id" id="btn-face-id" aria-label="Увійти з Face ID"><img src="assets/icon-face-id.png" alt="" /></button>
+        <button type="button" class="pin-key" data-key="0">0</button>
+        <button type="button" class="pin-key" data-key="backspace" aria-label="Видалити"><img src="assets/icon-pin-backspace.png" alt="" /></button>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
     <div class="steps" id="account-steps" role="progressbar" aria-label="Створення акаунту" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" hidden>
       <span style="width:68px"></span><span style="width:67px"></span><span style="width:67px"></span><span style="width:66px"></span><span style="width:66px"></span>
       <i class="steps-active" aria-hidden="true"></i>
@@ -2113,7 +2148,7 @@
         if (/^\d$/.test(e.key)) press(e.key);
         else if (e.key === 'Backspace') press('backspace');
       });
-      screen.querySelector('.btn-back').addEventListener('click', onBack);
+      screen.querySelector('.btn-back')?.addEventListener('click', onBack);
       return api;
     }
 
@@ -2299,6 +2334,10 @@
       amountValidate(true);
       show('screen-get-paid');
     });
+    // ---- Enter PIN code (вхід): прототип приймає будь-який PIN; Face ID теж пускає на Home ----
+    const enterPin = setupPinScreen('screen-enter-pin', { onComplete: () => show('screen-home') });
+    document.getElementById('btn-face-id').addEventListener('click', () => show('screen-home'));
+
     // ---- Sign in or create your account ----
     const siEmail = document.getElementById('input-sign-in-email');
     const siPass = document.getElementById('input-sign-in-password');
@@ -2327,7 +2366,8 @@
       e.preventDefault();
       if (siContinue.disabled) return;
       signInKeyboard.close();
-      show('screen-home');   // вхід → головний екран
+      enterPin.reset();
+      show('screen-enter-pin');   // вхід → Enter PIN code
     });
     document.getElementById('btn-sign-in').addEventListener('click', () => { closeAlphaKeyboard(); show('screen-sign-in'); });
     document.getElementById('btn-sign-in-back').addEventListener('click', () => { signInKeyboard.close(); show('screen-create-account'); });
