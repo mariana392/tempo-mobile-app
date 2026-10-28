@@ -770,6 +770,25 @@
     /* ---- Password code changed (Figma 4748:18147) ---- */
     .pwc-illustration { position: absolute; left: 60px; top: 156px; width: 273px; height: 222px; }
     .pwc-title { position: absolute; left: 7px; top: 422px; width: 358px; text-align: center; font: 500 22px/28px var(--font); }
+
+    /* ---- Transactions: пошук за сумою (Figma 624:6718) ---- */
+    .tx-search-bar { position: absolute; inset: 0 0 auto 0; height: 109px; z-index: 3; }
+    .tx-tool { position: absolute; top: 49px; width: 40px; height: 40px; padding: 0; border: 0; background: none; border-radius: 4px; cursor: pointer; }
+    .tx-tool img { display: block; width: 40px; height: 40px; }
+    .tx-tool:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
+    .tx-search-field {
+      position: absolute; left: 112px; top: 49px; width: 214px; height: 40px; padding: 7px; gap: 10px;
+      display: flex; align-items: center; background: var(--balance-surface); border: 1px solid #cdfdcd; border-radius: 4px; cursor: text;
+    }
+    .tx-search-field img { width: 24px; height: 24px; flex: none; }
+    .tx-search-field input {
+      flex: 1; min-width: 0; border: 0; outline: none; background: none; padding: 0;
+      font: 400 16px/24px var(--font); letter-spacing: 0.15px; color: var(--white-100); caret-color: var(--white-100);
+    }
+    .tx-search-field input::placeholder { color: #9e9d9d; opacity: 1; }
+    #screen-transactions.is-searching .nav-title, #screen-transactions.is-searching #btn-tx-search { display: none; }
+    #screen-transactions .ios-keyboard { z-index: 6; }
+    .tx-empty { text-align: center; font-size: 14px; line-height: 20px; letter-spacing: 0.25px; color: var(--label-gray); padding-top: 24px; }
   </style>
 </head>
 <body>
@@ -1587,7 +1606,17 @@
         <img class="right" src="assets/status-right.png" alt="" />
       </div>
       <p class="nav-title nav-title--two"><strong>Current Pay Period</strong><span>Feb 1 - Feb 20, 2026</span></p>
-      <button class="icon-btn" type="button" aria-label="Пошук"><img src="assets/btn-search.png" alt="" /></button>
+      <button class="icon-btn" type="button" id="btn-tx-search" aria-label="Пошук"><img src="assets/btn-search.png" alt="" /></button>
+      <!-- Режим пошуку (Figma 624:6718) -->
+      <div class="tx-search-bar" hidden>
+        <button class="tx-tool" type="button" style="left:16px" aria-label="Фільтри"><img src="assets/btn-filter.png" alt="" /></button>
+        <button class="tx-tool" type="button" style="left:64px" aria-label="Період"><img src="assets/btn-calendar.png" alt="" /></button>
+        <label class="tx-search-field" for="input-tx-search">
+          <img src="assets/icon-search-white.png" alt="" />
+          <input type="text" id="input-tx-search" inputmode="none" placeholder="Search" autocomplete="off" aria-label="Пошук за сумою" />
+        </label>
+        <button class="tx-tool" type="button" style="left:334px" id="btn-tx-search-close" aria-label="Закрити пошук"><img src="assets/btn-close-dark.png" alt="" /></button>
+      </div>
       <div class="sheet" aria-hidden="true"></div>
       <div class="tx-scroll">
         <div class="tx-list">
@@ -1631,6 +1660,20 @@
         </div>
         <div class="home-indicator-bar" aria-hidden="true"><span></span></div>
       </nav>
+      <div class="ios-keyboard" id="ios-keyboard-tx-search" aria-hidden="true">
+        <img class="ios-keyboard-img" src="assets/keyboard-numeric-plain.png" alt="" />
+        <button type="button" class="kb-key" data-key="1" style="left:3px;top:6px" tabindex="-1" aria-label="1"></button>
+        <button type="button" class="kb-key" data-key="2" style="left:132px;top:6px" tabindex="-1" aria-label="2"></button>
+        <button type="button" class="kb-key" data-key="3" style="left:261px;top:6px" tabindex="-1" aria-label="3"></button>
+        <button type="button" class="kb-key" data-key="4" style="left:3px;top:60px" tabindex="-1" aria-label="4"></button>
+        <button type="button" class="kb-key" data-key="5" style="left:132px;top:60px" tabindex="-1" aria-label="5"></button>
+        <button type="button" class="kb-key" data-key="6" style="left:261px;top:60px" tabindex="-1" aria-label="6"></button>
+        <button type="button" class="kb-key" data-key="7" style="left:3px;top:114px" tabindex="-1" aria-label="7"></button>
+        <button type="button" class="kb-key" data-key="8" style="left:132px;top:114px" tabindex="-1" aria-label="8"></button>
+        <button type="button" class="kb-key" data-key="9" style="left:261px;top:114px" tabindex="-1" aria-label="9"></button>
+        <button type="button" class="kb-key" data-key="0" style="left:132px;top:168px" tabindex="-1" aria-label="0"></button>
+        <button type="button" class="kb-key kb-key--flat" data-key="backspace" style="left:261px;top:168px" tabindex="-1" aria-label="Видалити"></button>
+      </div>
     </main>
 
     <!-- Screen 24: Earnings Details (Figma 601:9176) -->
@@ -2714,6 +2757,52 @@
     document.getElementById('btn-profile-edit').addEventListener('click', () => console.log('Edit profile'));      // TODO: екран редагування
     document.querySelectorAll('[data-profile-item]').forEach(b => b.addEventListener('click', () => console.log(b.dataset.profileItem))); // TODO
     document.getElementById('btn-sign-out').addEventListener('click', () => show('screen-create-account')); // Sign out → Create your account (email)
+
+    // ---- Transactions: пошук за сумою ----
+    (function setupTxSearch() {
+      const screen = document.getElementById('screen-transactions');
+      const bar = screen.querySelector('.tx-search-bar');
+      const input = document.getElementById('input-tx-search');
+      const keyboard = document.getElementById('ios-keyboard-tx-search');
+      const list = screen.querySelector('.tx-list');
+      const empty = document.createElement('p'); empty.className = 'tx-empty'; empty.textContent = 'No transactions found'; empty.hidden = true; list.appendChild(empty);
+      const digits = t => t.replace(/[^0-9.]/g, '');
+      function filter() {
+        const q = digits(input.value);
+        let any = false;
+        list.querySelectorAll('.tx-day').forEach(day => {
+          let shown = 0;
+          day.querySelectorAll('.tx').forEach(tx => {
+            const ok = !q || digits(tx.querySelector('.sum').textContent).includes(q);
+            tx.hidden = !ok; if (ok) shown++;
+          });
+          day.hidden = shown === 0; if (shown) any = true;
+        });
+        empty.hidden = any;
+      }
+      const openKb = () => { screen.classList.add('is-keyboard'); keyboard.setAttribute('aria-hidden', 'false'); };
+      const closeKb = () => { screen.classList.remove('is-keyboard'); keyboard.setAttribute('aria-hidden', 'true'); if (document.activeElement === input) input.blur(); };
+      function openSearch() { screen.classList.add('is-searching'); bar.hidden = false; input.focus(); }
+      function closeSearch() { closeKb(); input.value = ''; filter(); bar.hidden = true; screen.classList.remove('is-searching'); }
+      document.getElementById('btn-tx-search').addEventListener('click', openSearch);
+      document.getElementById('btn-tx-search-close').addEventListener('click', closeSearch);
+      input.addEventListener('focus', openKb);
+      input.addEventListener('input', () => { input.value = input.value.replace(/[^0-9.,]/g, ''); filter(); });   // тільки цифри — шукаємо суму
+      let downTarget = null;
+      screen.addEventListener('pointerdown', e => { downTarget = e.target; }, true);
+      screen.addEventListener('click', () => { if (downTarget && !downTarget.closest('.tx-search-field, .ios-keyboard, #btn-tx-search')) closeKb(); });
+      keyboard.querySelectorAll('.kb-key').forEach(key => {
+        key.addEventListener('pointerdown', e => { e.preventDefault(); key.classList.add('is-pressed'); });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => key.addEventListener(t, () => key.classList.remove('is-pressed')));
+        key.addEventListener('click', () => {
+          const k = key.dataset.key;
+          const a = input.selectionStart ?? input.value.length, b = input.selectionEnd ?? a;
+          if (k === 'backspace') { if (a !== b) input.setRangeText('', a, b, 'end'); else if (a > 0) input.setRangeText('', a - 1, a, 'end'); }
+          else input.setRangeText(k, a, b, 'end');
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      });
+    })();
 
     // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
     const phoneEl = document.querySelector('.phone');
