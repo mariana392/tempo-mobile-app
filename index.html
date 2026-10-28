@@ -864,8 +864,15 @@
     .bank-sheet .btn-bs-add { left: 18px; right: auto; width: 358px; max-width: calc(100% - 32px); top: 667px; bottom: auto; height: 56px; padding: 16px 24px; }
     .bank-sheet .home-indicator { background: #222222; }
     /* з клавіатурою: кнопка над клавіатурою */
-    #screen-bank-account.is-keyboard .btn-bs-add { top: 402px; }
-    #screen-bank-account .ios-keyboard { z-index: 9; }
+    .is-keyboard .bank-sheet .btn-bs-add { top: 402px; }
+    #ios-keyboard-iban { z-index: 9; }
+    /* ---- Bank account added (Figma 1189:19503) ---- */
+    .bank-card { position: absolute; left: 16px; top: 130px; width: 358px; max-width: calc(100% - 32px); height: 58px; padding: 0 16px; border: 1px solid #d2ced2; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
+    .bank-card p { margin: 0; width: 283px; font: 400 14px/20px var(--font); letter-spacing: 0.25px; }
+    .bank-card .radio { display: block; width: 24px; height: 24px; flex: none; }
+    .btn-replace-bank { position: absolute; left: 16px; top: 746px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font: 500 14px/20px var(--font); letter-spacing: 0.1px; color: #661f66; border-radius: 4px; }
+    .btn-replace-bank img { width: 20px; height: 20px; }
+    .btn-replace-bank:focus-visible { outline: 3px solid #7be35a; outline-offset: 3px; }
   </style>
 </head>
 <body>
@@ -1682,8 +1689,8 @@
         <img class="notch" src="assets/notch-black.png" alt="" />
         <img class="right" src="assets/status-right-dark.png" alt="" />
       </div>
-      <button class="btn-back" type="button" id="btn-bank-back" aria-label="Назад"><img src="assets/btn-back.png" alt="" /></button>
       <p class="nav-title">Bank account</p>
+      <button class="btn-back" type="button" id="btn-bank-back" aria-label="Назад"><img src="assets/btn-back.png" alt="" /></button>
       <img class="bank-illustration" src="assets/bank-account-empty.png" alt="" />
       <h1 class="bank-empty-title">No bank account</h1>
       <section class="info-banner">
@@ -1723,6 +1730,20 @@
         <button type="button" class="kb-key" data-key="0" style="left:132px;top:168px" tabindex="-1" aria-label="0"></button>
         <button type="button" class="kb-key kb-key--flat" data-key="backspace" style="left:261px;top:168px" tabindex="-1" aria-label="Видалити"></button>
       </div>
+    </main>
+
+    <!-- Bank account added (Figma 1189:19503) -->
+    <main class="screen screen--white" id="screen-bank-added" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <p class="nav-title">Bank account</p>
+      <button class="btn-back" type="button" id="btn-bank-added-back" aria-label="Назад"><img src="assets/btn-back.png" alt="" /></button>
+      <div class="bank-card"><p id="bank-added-iban">UA86 351006 000909 6090889090054</p><span class="radio" aria-hidden="true"></span></div>
+      <button class="btn-replace-bank" type="button" id="btn-replace-bank"><img src="assets/icon-card-replace.png" alt="" />Replace bank account</button>
+      <div class="home-indicator" aria-hidden="true"></div>
     </main>
 
     <!-- Screen 23: Transactions / History details (Figma 595:8620) -->
@@ -2908,13 +2929,23 @@
     profileScreen.querySelector('.profile-scroll').addEventListener('scroll', e => profileScreen.classList.toggle('is-scrolled', e.target.scrollTop > 0));
     document.getElementById('btn-profile-edit').addEventListener('click', () => console.log('Edit profile'));      // TODO: екран редагування
     document.querySelectorAll('[data-profile-item]').forEach(b => b.addEventListener('click', () => {
-      if (b.dataset.profileItem === 'Bank account') return show('screen-bank-account');
+      if (b.dataset.profileItem === 'Bank account') return show(bankIban ? 'screen-bank-added' : 'screen-bank-account');
       console.log(b.dataset.profileItem);   // TODO
     }));
     document.getElementById('btn-bank-back').addEventListener('click', () => show('screen-profile'));
+    document.getElementById('btn-bank-added-back').addEventListener('click', () => show('screen-profile'));
+    // ---- Доданий банківський рахунок: формат як у макеті — UA86 351006 000909 6090889090054 ----
+    let bankIban = null;
+    try { bankIban = new URLSearchParams(location.search).has('restart') ? null : localStorage.getItem('tempo:iban'); } catch (e) {}
+    function setBankIban(iban) {
+      bankIban = iban;
+      try { iban ? localStorage.setItem('tempo:iban', iban) : localStorage.removeItem('tempo:iban'); } catch (e) {}
+      if (iban) document.getElementById('bank-added-iban').textContent = iban.replace(/^(.{4})(.{6})(.{6})(.+)$/, '$1 $2 $3 $4');
+    }
+    if (bankIban) setBankIban(bankIban);
     // ---- Add bank account: шторка — відкривається знизу, закривається хрестиком, тапом по затемненню або свайпом вниз ----
     (function setupBankSheet() {
-      const screen = document.getElementById('screen-bank-account');
+      let screen = document.getElementById('screen-bank-account');
       const sheet = document.getElementById('bank-sheet');
       const backdrop = document.getElementById('bank-sheet-backdrop');
       const input = document.getElementById('input-iban');
@@ -2933,15 +2964,25 @@
       }
       const openKb = () => { screen.classList.add('is-keyboard'); keyboard.setAttribute('aria-hidden', 'false'); };
       const closeKb = () => { screen.classList.remove('is-keyboard'); keyboard.setAttribute('aria-hidden', 'true'); if (document.activeElement === input) input.blur(); };
-      function open() { input.value = ''; update(); sheet.style.transform = ''; backdrop.style.opacity = ''; screen.classList.add('is-sheet-open'); }
+      // шторка відкривається поверх того екрана, з якого її викликали (порожній або вже доданий рахунок)
+      function open(host) {
+        if (host && host !== screen) { screen = host; [backdrop, sheet, keyboard].forEach(el => host.appendChild(el)); }
+        input.value = ''; update(); sheet.style.transform = ''; backdrop.style.opacity = '';
+        void sheet.offsetWidth; screen.classList.add('is-sheet-open');
+      }
       function close() { closeKb(); sheet.style.transform = ''; backdrop.style.opacity = ''; screen.classList.remove('is-sheet-open'); }
-      document.getElementById('btn-add-bank').addEventListener('click', open);
+      document.getElementById('btn-add-bank').addEventListener('click', () => open(document.getElementById('screen-bank-account')));
+      document.getElementById('btn-replace-bank').addEventListener('click', () => open(document.getElementById('screen-bank-added')));
       document.getElementById('btn-bank-sheet-close').addEventListener('click', close);
       backdrop.addEventListener('click', close);
       input.addEventListener('focus', openKb);
       input.addEventListener('input', update);
       sheet.addEventListener('click', e => { if (!e.target.closest('.text-field, .btn')) closeKb(); });
-      addBtn.addEventListener('click', () => { closeKb(); console.log('Add bank account', input.value); });   // TODO: наступний екран
+      addBtn.addEventListener('click', () => {
+        const d = digitsOf(input.value);
+        setBankIban('UA' + d);
+        close(); show('screen-bank-added');
+      });
       keyboard.querySelectorAll('.kb-key').forEach(key => {
         key.addEventListener('pointerdown', e => { e.preventDefault(); key.classList.add('is-pressed'); });
         ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => key.addEventListener(t, () => key.classList.remove('is-pressed')));
@@ -3135,7 +3176,7 @@
       const restart = new URLSearchParams(location.search).has('restart');
       let saved = !restart && data && data.screen;
       let amount = !restart && data ? data.amount : undefined;
-      if (restart) try { localStorage.removeItem('tempo:screen'); localStorage.removeItem('tempo:amount'); } catch (e) {}
+      if (restart) try { localStorage.removeItem('tempo:screen'); localStorage.removeItem('tempo:amount'); localStorage.removeItem('tempo:iban'); } catch (e) {}
       else try {
         saved = saved || localStorage.getItem('tempo:screen');
         amount = amount ?? localStorage.getItem('tempo:amount');
