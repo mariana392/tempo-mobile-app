@@ -289,6 +289,7 @@
     }
     .otp input.is-filled { border-color: var(--otp-filled); }
     .otp input:focus { border: 3px solid var(--otp-focus); }
+    .otp.is-complete input:focus { border: 1px solid var(--otp-filled); caret-color: transparent; }   /* усі 6 цифр введено — без рамки фокусу (Figma 233:5284) */
     .otp-error { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; color: var(--error); }
     .help { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
     .help a { color: var(--otp-focus); text-decoration: underline; text-decoration-skip-ink: none; }
@@ -2052,6 +2053,7 @@
       function update() {
         inputs.forEach(i => i.classList.toggle('is-filled', i.value !== ''));
         continueBtn.disabled = inputs.some(i => i.value === '');
+        screen.querySelector('.otp').classList.toggle('is-complete', !continueBtn.disabled);
         errorEl.hidden = true;
       }
       function fill(from, digits) {
