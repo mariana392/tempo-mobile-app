@@ -820,6 +820,16 @@
     .tx-calendar .btn-cal-show { top: 633px; /* 742 на екрані */ bottom: auto; z-index: 2; }
     .tx-calendar .cal-home { position: absolute; left: 0; right: 0; bottom: 0; height: 28px; background: var(--white-100); z-index: 2; }
     .tx-calendar .home-indicator { background: #222222; z-index: 3; }
+    /* ---- Transactions: фільтри (Figma 629:13747) ---- */
+    .tx-tool--filter.is-active img { content: url(assets/btn-filter-active.png); }
+    .tx-filters { position: absolute; left: 0; right: 0; top: 109px; bottom: 0; z-index: 5; background: var(--white-100); border-radius: 16px 16px 0 0; }
+    .tx-filters ul { position: absolute; left: 16px; top: 32px; width: 358px; max-width: calc(100% - 32px); margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .tx-filters button { width: 100%; height: 64px; padding: 11px; /* 12 у Figma (рамка всередині) */ display: flex; align-items: center; gap: 8px; border: 1px solid #d2ced2; border-radius: 8px; background: none; cursor: pointer; text-align: left; font: 500 16px/24px var(--font); letter-spacing: 0.15px; color: #000; }
+    .tx-filters button > img { width: 40px; height: 40px; flex: none; }
+    .tx-filters button span { flex: 1; }
+    .tx-filters .tick { width: 24px; height: 24px; flex: none; visibility: hidden; }
+    .tx-filters button[aria-pressed="true"] .tick { visibility: visible; }
+    .tx-filters .home-indicator { background: #222222; }
   </style>
 </head>
 <body>
@@ -1640,7 +1650,7 @@
       <button class="icon-btn" type="button" id="btn-tx-search" aria-label="Пошук"><img src="assets/btn-search.png" alt="" /></button>
       <!-- Режим пошуку (Figma 624:6718) -->
       <div class="tx-search-bar" hidden>
-        <button class="tx-tool tx-tool--extra" type="button" style="left:16px" aria-label="Фільтри"><img src="assets/btn-filter.png" alt="" /></button>
+        <button class="tx-tool tx-tool--extra tx-tool--filter" type="button" style="left:16px" id="btn-tx-filter" aria-label="Фільтри" aria-pressed="false"><img src="assets/btn-filter.png" alt="" /></button>
         <button class="tx-tool tx-tool--extra tx-tool--calendar" type="button" style="left:64px" id="btn-tx-calendar" aria-label="Період" aria-pressed="false"><img src="assets/btn-calendar.png" alt="" /></button>
         <button class="tx-tool tx-tool--expand" type="button" style="left:16px" id="btn-tx-search-tools" aria-label="Показати фільтри"><img src="assets/btn-arrow-right-dark.png" alt="" /></button>
         <label class="tx-search-field" for="input-tx-search">
@@ -1648,6 +1658,14 @@
           <input type="text" id="input-tx-search" inputmode="none" placeholder="Search" autocomplete="off" aria-label="Пошук за сумою" />
         </label>
         <button class="tx-tool" type="button" style="left:334px" id="btn-tx-search-close" aria-label="Закрити пошук"><img src="assets/btn-close-dark.png" alt="" /></button>
+      </div>
+      <!-- Фільтри (Figma 629:13747) -->
+      <div class="tx-filters" hidden>
+        <ul>
+          <li><button type="button" data-filter="earning" aria-pressed="false"><img src="assets/filter-earnings.png" alt="" /><span>Earnings</span><img class="tick" src="assets/icon-tick-circle.png" alt="" /></button></li>
+          <li><button type="button" data-filter="transfer" aria-pressed="false"><img src="assets/filter-transfers.png" alt="" /><span>Transfers</span><img class="tick" src="assets/icon-tick-circle.png" alt="" /></button></li>
+        </ul>
+        <div class="home-indicator" aria-hidden="true"></div>
       </div>
       <!-- Календар (Figma 633:14301) -->
       <div class="tx-calendar" hidden>
@@ -2815,6 +2833,7 @@
       const list = screen.querySelector('.tx-list');
       const nothing = screen.querySelector('.tx-nothing');
       const digits = t => t.replace(/[^0-9.]/g, '');
+      const typeFilter = new Set();   // 'earning' / 'transfer' з панелі фільтрів
       let dateRange = null;   // [від, до] з календаря, ключі yyyymmdd (місяць з 0)
       const txKey = tx => { const d = new Date(tx.dataset.date); return d.getFullYear() * 10000 + d.getMonth() * 100 + d.getDate(); };
       function filter() {
@@ -2824,7 +2843,8 @@
           let shown = 0;
           day.querySelectorAll('.tx').forEach(tx => {
             const ok = (!q || digits(tx.querySelector('.sum').textContent).includes(q))
-              && (!dateRange || (tx.dataset.date && txKey(tx) >= dateRange[0] && txKey(tx) <= dateRange[1]));
+              && (!dateRange || (tx.dataset.date && txKey(tx) >= dateRange[0] && txKey(tx) <= dateRange[1]))
+              && (!typeFilter.size || [...typeFilter].some(t => (t in tx.dataset)));
             tx.hidden = !ok; if (ok) shown++;
           });
           day.hidden = shown === 0; if (shown) any = true;
@@ -2921,12 +2941,25 @@
           calScroll.scrollTop = anchor.offsetTop - 41;
         }
       }
-      calBtn.addEventListener('click', () => setCalendar(cal.hidden));
+      calBtn.addEventListener('click', () => { setFilters(false); setCalendar(cal.hidden); });
+      // ---- Фільтри (Figma 629:13747): Earnings / Transfers, галочка — вибраний тип; список фільтрується одразу ----
+      const filtBtn = document.getElementById('btn-tx-filter');
+      const filtPanel = screen.querySelector('.tx-filters');
+      function setFilters(on) {
+        filtPanel.hidden = !on; filtBtn.classList.toggle('is-active', on); filtBtn.setAttribute('aria-pressed', String(on));
+        if (on) { closeKb(); setCalendar(false); }
+      }
+      filtBtn.addEventListener('click', () => setFilters(filtPanel.hidden));
+      filtPanel.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => {
+        const t = b.dataset.filter, on = !typeFilter.has(t);
+        on ? typeFilter.add(t) : typeFilter.delete(t);
+        b.setAttribute('aria-pressed', String(on)); filter();
+      }));
       calShow.addEventListener('click', () => {
         dateRange = selStart ? [selStart, selEnd ?? selStart] : null;
         setCalendar(false); filter();
       });
-      document.getElementById('btn-tx-search-close').addEventListener('click', () => { selStart = selEnd = null; dateRange = null; paintRange(); setCalendar(false); filter(); });
+      document.getElementById('btn-tx-search-close').addEventListener('click', () => { selStart = selEnd = null; dateRange = null; paintRange(); setCalendar(false); typeFilter.clear(); filtPanel.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', 'false')); setFilters(false); filter(); });
     })();
 
     // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
