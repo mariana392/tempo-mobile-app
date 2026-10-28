@@ -766,6 +766,10 @@
     #screen-new-password.is-keyboard .account .pictogram { display: none; }
     #screen-new-password.is-keyboard .terms-note { top: 433px; }
     #screen-new-password.is-keyboard .btn--password { top: 485px; }
+
+    /* ---- Password code changed (Figma 4748:18147) ---- */
+    .pwc-illustration { position: absolute; left: 60px; top: 156px; width: 273px; height: 222px; }
+    .pwc-title { position: absolute; left: 7px; top: 422px; width: 358px; text-align: center; font: 500 22px/28px var(--font); }
   </style>
 </head>
 <body>
@@ -2059,6 +2063,19 @@
       </div>
     </main>
 
+    <!-- Screen 32: Password code changed (Figma 4748:18147) -->
+    <main class="screen screen--white" id="screen-password-changed" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <img class="pwc-illustration" src="assets/password-changed.png" alt="" />
+      <h1 class="pwc-title">Password code changed</h1>
+      <button class="btn btn--primary btn--password" type="button" id="btn-password-changed-done">Done</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
     <div class="steps" id="account-steps" role="progressbar" aria-label="Створення акаунту" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" hidden>
       <span style="width:68px"></span><span style="width:67px"></span><span style="width:67px"></span><span style="width:66px"></span><span style="width:66px"></span>
       <i class="steps-active" aria-hidden="true"></i>
@@ -2685,9 +2702,11 @@
       e.preventDefault();
       if (npContinue.disabled) return;
       npKeyboard.close();
-      console.log('New password set');   // TODO: наступний екран
+      show('screen-password-changed');
     });
     document.getElementById('btn-new-password-back').addEventListener('click', () => { npKeyboard.close(); show('screen-reset-verify'); });
+    // Done → назад на вхід (Sign in)
+    document.getElementById('btn-password-changed-done').addEventListener('click', () => { siPass.value = ''; siUpdate(); show('screen-sign-in'); });
 
     // ---- Profile ----
     const profileScreen = document.getElementById('screen-profile');
