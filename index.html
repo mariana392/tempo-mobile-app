@@ -788,7 +788,14 @@
     .tx-search-field input::placeholder { color: #9e9d9d; opacity: 1; }
     #screen-transactions.is-searching .nav-title, #screen-transactions.is-searching #btn-tx-search { display: none; }
     #screen-transactions .ios-keyboard { z-index: 6; }
-    .tx-empty { text-align: center; font-size: 14px; line-height: 20px; letter-spacing: 0.25px; color: var(--label-gray); padding-top: 24px; }
+    /* з введеним запитом (Figma 629:13799): фільтр і календар ховаються за стрілкою, поле ширшає */
+    .tx-tool--expand { display: none; }
+    .tx-search-bar.is-typing:not(.show-tools) .tx-tool--extra { display: none; }
+    .tx-search-bar.is-typing:not(.show-tools) .tx-tool--expand { display: block; }
+    .tx-search-bar.is-typing:not(.show-tools) .tx-search-field { left: 64px; width: 262px; }
+    .tx-nothing { position: absolute; left: 0; right: 0; top: 0; height: 0; z-index: 1; }
+    .tx-nothing img { position: absolute; left: 72px; top: 174px; width: 254px; height: 240.5px; }
+    .tx-nothing p { position: absolute; left: 0; right: 0; top: 440px; padding-left: 1px; text-align: center; font: 500 22px/28px var(--font); color: var(--text-primary-black-700); }
   </style>
 </head>
 <body>
@@ -1609,8 +1616,9 @@
       <button class="icon-btn" type="button" id="btn-tx-search" aria-label="Пошук"><img src="assets/btn-search.png" alt="" /></button>
       <!-- Режим пошуку (Figma 624:6718) -->
       <div class="tx-search-bar" hidden>
-        <button class="tx-tool" type="button" style="left:16px" aria-label="Фільтри"><img src="assets/btn-filter.png" alt="" /></button>
-        <button class="tx-tool" type="button" style="left:64px" aria-label="Період"><img src="assets/btn-calendar.png" alt="" /></button>
+        <button class="tx-tool tx-tool--extra" type="button" style="left:16px" aria-label="Фільтри"><img src="assets/btn-filter.png" alt="" /></button>
+        <button class="tx-tool tx-tool--extra" type="button" style="left:64px" aria-label="Період"><img src="assets/btn-calendar.png" alt="" /></button>
+        <button class="tx-tool tx-tool--expand" type="button" style="left:16px" id="btn-tx-search-tools" aria-label="Показати фільтри"><img src="assets/btn-arrow-right-dark.png" alt="" /></button>
         <label class="tx-search-field" for="input-tx-search">
           <img src="assets/icon-search-white.png" alt="" />
           <input type="text" id="input-tx-search" inputmode="none" placeholder="Search" autocomplete="off" aria-label="Пошук за сумою" />
@@ -1618,6 +1626,11 @@
         <button class="tx-tool" type="button" style="left:334px" id="btn-tx-search-close" aria-label="Закрити пошук"><img src="assets/btn-close-dark.png" alt="" /></button>
       </div>
       <div class="sheet" aria-hidden="true"></div>
+      <!-- Нічого не знайдено (Figma 629:13799) -->
+      <div class="tx-nothing" hidden>
+        <img src="assets/nothing-found.png" alt="" />
+        <p>Nothing found</p>
+      </div>
       <div class="tx-scroll">
         <div class="tx-list">
             <section class="tx-day">
@@ -2765,7 +2778,7 @@
       const input = document.getElementById('input-tx-search');
       const keyboard = document.getElementById('ios-keyboard-tx-search');
       const list = screen.querySelector('.tx-list');
-      const empty = document.createElement('p'); empty.className = 'tx-empty'; empty.textContent = 'No transactions found'; empty.hidden = true; list.appendChild(empty);
+      const nothing = screen.querySelector('.tx-nothing');
       const digits = t => t.replace(/[^0-9.]/g, '');
       function filter() {
         const q = digits(input.value);
@@ -2778,7 +2791,9 @@
           });
           day.hidden = shown === 0; if (shown) any = true;
         });
-        empty.hidden = any;
+        nothing.hidden = any;
+        bar.classList.toggle('is-typing', input.value !== '');
+        if (!input.value) bar.classList.remove('show-tools');
       }
       const openKb = () => { screen.classList.add('is-keyboard'); keyboard.setAttribute('aria-hidden', 'false'); };
       const closeKb = () => { screen.classList.remove('is-keyboard'); keyboard.setAttribute('aria-hidden', 'true'); if (document.activeElement === input) input.blur(); };
@@ -2786,11 +2801,12 @@
       function closeSearch() { closeKb(); input.value = ''; filter(); bar.hidden = true; screen.classList.remove('is-searching'); }
       document.getElementById('btn-tx-search').addEventListener('click', openSearch);
       document.getElementById('btn-tx-search-close').addEventListener('click', closeSearch);
+      document.getElementById('btn-tx-search-tools').addEventListener('click', () => bar.classList.add('show-tools'));
       input.addEventListener('focus', openKb);
       input.addEventListener('input', () => { input.value = input.value.replace(/[^0-9.,]/g, ''); filter(); });   // тільки цифри — шукаємо суму
       let downTarget = null;
       screen.addEventListener('pointerdown', e => { downTarget = e.target; }, true);
-      screen.addEventListener('click', () => { if (downTarget && !downTarget.closest('.tx-search-field, .ios-keyboard, #btn-tx-search')) closeKb(); });
+      screen.addEventListener('click', () => { if (downTarget && !downTarget.closest('.tx-search-bar, .ios-keyboard, #btn-tx-search')) closeKb(); });
       keyboard.querySelectorAll('.kb-key').forEach(key => {
         key.addEventListener('pointerdown', e => { e.preventDefault(); key.classList.add('is-pressed'); });
         ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => key.addEventListener(t, () => key.classList.remove('is-pressed')));
