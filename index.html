@@ -844,10 +844,10 @@
     /* ---- Add bank account: шторка (Figma 1225:21237) ---- */
     .bs-backdrop { position: absolute; inset: 0; z-index: 7; background: rgba(0, 0, 0, .4); opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .3s; }
     .bank-sheet { position: absolute; left: 0; right: 0; top: 83px; bottom: 0; z-index: 8; background: var(--white-100); border-radius: 16px 16px 0 0; transform: translateY(100%); visibility: hidden; transition: transform .3s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .3s; touch-action: none; }
-    .is-sheet-open .bs-backdrop { opacity: 1; visibility: visible; transition: opacity .3s ease; }
-    .is-sheet-open .bank-sheet { transform: translateY(0); visibility: visible; transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
+    .bs-backdrop.is-open { opacity: 1; visibility: visible; transition: opacity .3s ease; }
+    .bank-sheet.is-open { transform: translateY(0); visibility: visible; transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
     .bank-sheet.is-dragging { transition: none; }
-    @media (prefers-reduced-motion: reduce) { .bs-backdrop, .bank-sheet, .is-sheet-open .bs-backdrop, .is-sheet-open .bank-sheet { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .bs-backdrop, .bank-sheet, .bs-backdrop.is-open, .bank-sheet.is-open { transition: none; } }
     .bank-sheet .bs-close { position: absolute; left: 16px; top: 16px; width: 24px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 4px; }
     .bank-sheet .bs-close img { display: block; width: 24px; height: 24px; }
     .bank-sheet .bs-close:focus-visible { outline: 3px solid #7be35a; outline-offset: 2px; }
@@ -865,7 +865,7 @@
     .bank-sheet .home-indicator { background: #222222; }
     /* з клавіатурою: кнопка над клавіатурою */
     .is-keyboard .bank-sheet .btn-bs-add { top: 402px; }
-    #ios-keyboard-iban { z-index: 9; }
+    #ios-keyboard-iban, #ios-keyboard-iban-new { z-index: 9; }
     /* ---- Bank account added (Figma 1189:19503) ---- */
     .bank-card { position: absolute; left: 16px; top: 130px; width: 358px; max-width: calc(100% - 32px); height: 58px; padding: 0 16px; border: 1px solid #d2ced2; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
     .bank-card p { margin: 0; width: 283px; font: 400 14px/20px var(--font); letter-spacing: 0.25px; }
@@ -873,6 +873,29 @@
     .btn-replace-bank { position: absolute; left: 16px; top: 746px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font: 500 14px/20px var(--font); letter-spacing: 0.1px; color: #661f66; border-radius: 4px; }
     .btn-replace-bank img { width: 20px; height: 20px; }
     .btn-replace-bank:focus-visible { outline: 3px solid #7be35a; outline-offset: 3px; }
+    /* ---- Replace bank account: шторка з прокруткою (Figma 2584:46238) ---- */
+    .replace-sheet { touch-action: auto; }
+    .replace-sheet .rs-scroll { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; border-radius: inherit; }
+    .replace-sheet .rs-scroll::-webkit-scrollbar { display: none; }
+    .replace-sheet.kb-pad .rs-scroll { padding-bottom: 291px; }
+    .replace-sheet .bs-close { z-index: 1; }
+    .rs-content { margin: 44px 0 40px 16px; width: 360px; max-width: calc(100% - 30px); display: flex; flex-direction: column; gap: 40px; }
+    .rs-top { display: flex; flex-direction: column; gap: 24px; }
+    .rs-intro { display: flex; flex-direction: column; gap: 12px; }
+    .rs-intro p { margin: 0; text-align: center; font: 400 16px/24px var(--font); letter-spacing: 0.15px; }
+    .rs-main { display: flex; flex-direction: column; gap: 32px; }
+    .warn-banner { padding: 16px; background: #fff8e1; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
+    .warn-banner h3 { margin: 0; font: 500 22px/28px var(--font); }
+    .warn-banner ul { margin: 0; padding: 0 0 0 24px; list-style: disc; font: 400 16px/24px var(--font); letter-spacing: 0.15px; }
+    .rs-fields { display: flex; flex-direction: column; gap: 16px; }
+    .text-field.is-disabled { border-color: #bababa; cursor: default; }
+    .text-field.is-disabled .label { color: #9e9d9d; }
+    .text-field .static-value { flex: 1; min-width: 0; padding-right: 16px; white-space: nowrap; overflow: hidden; font: 400 16px/24px var(--font); letter-spacing: 0.15px; color: #22002b; }
+    .text-field .static-value span { color: #9e9d9d; }
+    .rs-divider { display: flex; align-items: center; gap: 4px; }
+    .rs-divider i { flex: 1; height: 1px; background: #e7e7e8; }
+    .rs-divider img { width: 24px; height: 24px; }
+    .replace-sheet .btn-rs-replace { position: static; width: 100%; height: 56px; padding: 16px 24px; }
   </style>
 </head>
 <body>
@@ -1744,6 +1767,61 @@
       <div class="bank-card"><p id="bank-added-iban">UA86 351006 000909 6090889090054</p><span class="radio" aria-hidden="true"></span></div>
       <button class="btn-replace-bank" type="button" id="btn-replace-bank"><img src="assets/icon-card-replace.png" alt="" />Replace bank account</button>
       <div class="home-indicator" aria-hidden="true"></div>
+      <!-- Replace bank account: шторка (Figma 2584:46238) -->
+      <div class="bs-backdrop" id="replace-sheet-backdrop" aria-hidden="true"></div>
+      <section class="bank-sheet replace-sheet" id="replace-sheet" role="dialog" aria-modal="true" aria-labelledby="replace-sheet-title">
+        <div class="rs-scroll">
+          <button class="bs-close" type="button" id="btn-replace-sheet-close" aria-label="Закрити"><img src="assets/icon-cross.png" alt="" /></button>
+          <div class="rs-content">
+            <div class="rs-top">
+              <div class="rs-intro">
+                <div class="bs-head"><img src="assets/pictogram-bank-replace.png" alt="" /><h2 id="replace-sheet-title">Replace bank account</h2></div>
+                <p>The new account will fully replace your current one.</p>
+              </div>
+              <div class="rs-main">
+                <div class="warn-banner">
+                  <h3>What happens when you replace an account?</h3>
+                  <ul>
+                    <li>Your current bank account will be permanently removed</li>
+                    <li>All future transfers will go to the new account</li>
+                    <li>The change takes effect from the next business day</li>
+                    <li>Transfers already in progress are not affected</li>
+                  </ul>
+                </div>
+                <div class="rs-fields">
+                  <div class="text-field is-disabled" aria-disabled="true">
+                    <img class="lead" src="assets/icon-card-outline-disabled.png" alt="" />
+                    <span class="static-value" id="replace-current-iban"><span>UA</span>86 351006 000909 60908090054</span>
+                    <span class="label">IBAN (current account)</span>
+                  </div>
+                  <div class="rs-divider" aria-hidden="true"><i></i><img src="assets/icon-refresh-circle.png" alt="" /><i></i></div>
+                  <label class="text-field" id="field-iban-new" for="input-iban-new">
+                    <img class="lead" src="assets/icon-card-outline.png" alt="" />
+                    <input type="text" id="input-iban-new" inputmode="none" autocomplete="off" spellcheck="false" />
+                    <span class="label">IBAN (new account)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn--primary btn-rs-replace" type="button" id="btn-replace-confirm" disabled>Replace</button>
+          </div>
+        </div>
+        <div class="home-indicator" aria-hidden="true"></div>
+      </section>
+      <div class="ios-keyboard" id="ios-keyboard-iban-new" aria-hidden="true">
+        <img class="ios-keyboard-img" src="assets/keyboard-numeric-plain.png" alt="" />
+        <button type="button" class="kb-key" data-key="1" style="left:3px;top:6px" tabindex="-1" aria-label="1"></button>
+        <button type="button" class="kb-key" data-key="2" style="left:132px;top:6px" tabindex="-1" aria-label="2"></button>
+        <button type="button" class="kb-key" data-key="3" style="left:261px;top:6px" tabindex="-1" aria-label="3"></button>
+        <button type="button" class="kb-key" data-key="4" style="left:3px;top:60px" tabindex="-1" aria-label="4"></button>
+        <button type="button" class="kb-key" data-key="5" style="left:132px;top:60px" tabindex="-1" aria-label="5"></button>
+        <button type="button" class="kb-key" data-key="6" style="left:261px;top:60px" tabindex="-1" aria-label="6"></button>
+        <button type="button" class="kb-key" data-key="7" style="left:3px;top:114px" tabindex="-1" aria-label="7"></button>
+        <button type="button" class="kb-key" data-key="8" style="left:132px;top:114px" tabindex="-1" aria-label="8"></button>
+        <button type="button" class="kb-key" data-key="9" style="left:261px;top:114px" tabindex="-1" aria-label="9"></button>
+        <button type="button" class="kb-key" data-key="0" style="left:132px;top:168px" tabindex="-1" aria-label="0"></button>
+        <button type="button" class="kb-key kb-key--flat" data-key="backspace" style="left:261px;top:168px" tabindex="-1" aria-label="Видалити"></button>
+      </div>
     </main>
 
     <!-- Screen 23: Transactions / History details (Figma 595:8620) -->
@@ -2968,11 +3046,10 @@
       function open(host) {
         if (host && host !== screen) { screen = host; [backdrop, sheet, keyboard].forEach(el => host.appendChild(el)); }
         input.value = ''; update(); sheet.style.transform = ''; backdrop.style.opacity = '';
-        void sheet.offsetWidth; screen.classList.add('is-sheet-open');
+        void sheet.offsetWidth; sheet.classList.add('is-open'); backdrop.classList.add('is-open');
       }
-      function close() { closeKb(); sheet.style.transform = ''; backdrop.style.opacity = ''; screen.classList.remove('is-sheet-open'); }
+      function close() { closeKb(); sheet.style.transform = ''; backdrop.style.opacity = ''; sheet.classList.remove('is-open'); backdrop.classList.remove('is-open'); }
       document.getElementById('btn-add-bank').addEventListener('click', () => open(document.getElementById('screen-bank-account')));
-      document.getElementById('btn-replace-bank').addEventListener('click', () => open(document.getElementById('screen-bank-added')));
       document.getElementById('btn-bank-sheet-close').addEventListener('click', close);
       backdrop.addEventListener('click', close);
       input.addEventListener('focus', openKb);
@@ -3151,6 +3228,83 @@
         setCalendar(false); filter();
       });
       document.getElementById('btn-tx-search-close').addEventListener('click', () => { selStart = selEnd = null; dateRange = null; paintRange(); setCalendar(false); typeFilter.clear(); filtPanel.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', 'false')); setFilters(false); filter(); });
+    })();
+
+    // ---- Replace bank account: шторка з прокруткою; свайп вниз закриває, коли вміст прокручено до верху ----
+    (function setupReplaceSheet() {
+      const screen = document.getElementById('screen-bank-added');
+      const sheet = document.getElementById('replace-sheet');
+      const scroller = sheet.querySelector('.rs-scroll');
+      const backdrop = document.getElementById('replace-sheet-backdrop');
+      const input = document.getElementById('input-iban-new');
+      const field = document.getElementById('field-iban-new');
+      const btn = document.getElementById('btn-replace-confirm');
+      const keyboard = document.getElementById('ios-keyboard-iban-new');
+      const MAX = 27;
+      const fmt = d => d ? ('UA' + d).replace(/(.{4})(?=.)/g, '$1 ') : '';
+      const digitsOf = v => v.replace(/^UA/i, '').replace(/\D/g, '').slice(0, MAX);
+      function update() {
+        const d = digitsOf(input.value);
+        input.value = fmt(d);
+        field.classList.toggle('is-filled', d !== '');
+        btn.disabled = d.length !== MAX;
+        input.scrollLeft = input.scrollWidth;
+      }
+      function openKb() {
+        screen.classList.add('is-keyboard'); keyboard.setAttribute('aria-hidden', 'false'); sheet.classList.add('kb-pad');
+        // поле над клавіатурою (клавіатура починається на 553 px екрана = 470 px шторки)
+        const f = field.getBoundingClientRect(), sh = sheet.getBoundingClientRect(), k = sh.height / sheet.offsetHeight || 1;
+        const bottom = (f.bottom - sh.top) / k + 12;
+        if (bottom > 470) scroller.scrollTop += bottom - 470;
+      }
+      function closeKb() { screen.classList.remove('is-keyboard'); keyboard.setAttribute('aria-hidden', 'true'); sheet.classList.remove('kb-pad'); if (document.activeElement === input) input.blur(); }
+      function open() {
+        const cur = (bankIban || 'UA86351006000909609080900054').replace(/^(.{4})(.{6})(.{6})(.+)$/, '$1 $2 $3 $4');
+        document.getElementById('replace-current-iban').innerHTML = '<span>UA</span>' + cur.slice(2);
+        input.value = ''; update(); scroller.scrollTop = 0; sheet.style.transform = ''; backdrop.style.opacity = '';
+        void sheet.offsetWidth; sheet.classList.add('is-open'); backdrop.classList.add('is-open');
+      }
+      function close() { closeKb(); sheet.style.transform = ''; backdrop.style.opacity = ''; sheet.classList.remove('is-open'); backdrop.classList.remove('is-open'); }
+      document.getElementById('btn-replace-bank').addEventListener('click', open);
+      document.getElementById('btn-replace-sheet-close').addEventListener('click', close);
+      backdrop.addEventListener('click', close);
+      input.addEventListener('focus', openKb);
+      input.addEventListener('input', update);
+      let downT = null;   // поле може зсунутися (прокрутка над клавіатурою) між натисканням і click — дивимось, куди натиснули
+      sheet.addEventListener('pointerdown', e => { downT = e.target; }, true);
+      sheet.addEventListener('click', e => { const t = downT || e.target; if (!t.closest('#field-iban-new, .btn, .ios-keyboard')) closeKb(); });
+      btn.addEventListener('click', () => { setBankIban('UA' + digitsOf(input.value)); close(); });
+      keyboard.querySelectorAll('.kb-key').forEach(key => {
+        key.addEventListener('pointerdown', e => { e.preventDefault(); key.classList.add('is-pressed'); });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => key.addEventListener(t, () => key.classList.remove('is-pressed')));
+        key.addEventListener('click', () => {
+          const d = digitsOf(input.value);
+          input.value = fmt(key.dataset.key === 'backspace' ? d.slice(0, -1) : (d + key.dataset.key).slice(0, MAX)); update();
+        });
+      });
+      // свайп: тягнемо вниз лише коли вміст прокручено до самого верху
+      const k = () => sheet.getBoundingClientRect().height / sheet.offsetHeight || 1;
+      let y0 = null, dy = 0, dragging = false;
+      const begin = y => { y0 = y; dy = 0; dragging = false; };
+      const move = (y, ev) => {
+        if (y0 === null) return;
+        const d = (y - y0) / k();
+        if (!dragging) { if (d > 4 && scroller.scrollTop <= 0) { dragging = true; closeKb(); sheet.classList.add('is-dragging'); y0 = y; } else if (Math.abs(d) > 4) { y0 = null; } return; }
+        ev.cancelable && ev.preventDefault();
+        dy = Math.max(0, d); sheet.style.transform = `translateY(${dy}px)`; backdrop.style.opacity = String(Math.max(0, 1 - dy / 600));
+      };
+      const finish = () => {
+        if (y0 === null && !dragging) return;
+        y0 = null; if (!dragging) return; dragging = false; sheet.classList.remove('is-dragging');
+        if (dy > 120) close(); else { sheet.style.transform = ''; backdrop.style.opacity = ''; }
+      };
+      const skip = t => t.closest('input, .btn, .bs-close, .ios-keyboard');
+      sheet.addEventListener('touchstart', e => { if (!skip(e.target)) begin(e.touches[0].clientY); }, { passive: true });
+      sheet.addEventListener('touchmove', e => move(e.touches[0].clientY, e), { passive: false });
+      sheet.addEventListener('touchend', finish); sheet.addEventListener('touchcancel', finish);
+      sheet.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && !skip(e.target)) { begin(e.clientY); } });
+      addEventListener('pointermove', e => { if (e.pointerType === 'mouse') move(e.clientY, e); });
+      addEventListener('pointerup', e => { if (e.pointerType === 'mouse') finish(); });
     })();
 
     // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
