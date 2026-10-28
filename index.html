@@ -2244,11 +2244,13 @@
       return { screen: current, amount: amountInput.value };
     }
     function start(data) {
-      const isLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-      let saved = isLocal && data && data.screen;
-      let amount = isLocal && data ? data.amount : undefined;
-      // На localhost пам'ятаємо екран між перезавантаженнями; у посиланні прототип відкривається з початку
-      if (isLocal) try {
+      // Пам'ятаємо екран, на якому зупинились (localhost, артефакт, GitHub Pages).
+      // Почати з нуля: додати ?restart до посилання.
+      const restart = new URLSearchParams(location.search).has('restart');
+      let saved = !restart && data && data.screen;
+      let amount = !restart && data ? data.amount : undefined;
+      if (restart) try { localStorage.removeItem('tempo:screen'); localStorage.removeItem('tempo:amount'); } catch (e) {}
+      else try {
         saved = saved || localStorage.getItem('tempo:screen');
         amount = amount ?? localStorage.getItem('tempo:amount');
       } catch (e) {}
