@@ -942,6 +942,10 @@
     .msent p { margin: 0; width: 354px; max-width: 100%; font: 500 16px/24px var(--font); letter-spacing: 0.15px; }
     #screen-support-sent .btn-home { top: 670px; }
     .btn--outline-white { background: none; color: var(--white-100); border: 1px solid var(--white-100); padding: 16px 24px; }
+    /* ---- Terms and service (Figma 5322:35581) ---- */
+    .terms-body { position: absolute; left: 16px; top: 105px; width: 358px; max-width: calc(100% - 32px); display: flex; flex-direction: column; gap: 40px; }
+    .terms-body .menu-card .lead > span { width: 230px; }
+    .menu-card .lead--top { align-items: flex-start; }
   </style>
 </head>
 <body>
@@ -1616,7 +1620,7 @@
               <div class="useful">
                 <button type="button" id="btn-home-support"><img src="assets/icon-support.png" alt="" />Support service</button>
                 <button type="button" id="btn-home-faq"><img src="assets/icon-faq.png" alt="" />FAQ</button>
-                <button type="button"><img src="assets/icon-terms.png" alt="" />Terms and service</button>
+                <button type="button" id="btn-home-terms"><img src="assets/icon-terms.png" alt="" />Terms and service</button>
               </div>
             </section>
           </div>
@@ -2003,6 +2007,29 @@
       </section>
       <button class="btn btn--primary-white btn-home" type="button" id="btn-support-sent-home">Back to home</button>
       <button class="btn btn--outline-white" type="button" id="btn-support-sent-another">Send another message</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <!-- Terms and service (Figma 5322:35581) -->
+    <main class="screen screen--white" id="screen-terms" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <p class="nav-title">Terms and service</p>
+      <button class="btn-back" type="button" id="btn-terms-back" aria-label="Назад"><img src="assets/btn-back.png" alt="" /></button>
+      <div class="terms-body">
+        <div class="support-copy">
+          <h1>Terms of Use for Tempo</h1>
+          <p>Please review the documents below to proceed. This will take 2-3 minutes.</p>
+        </div>
+        <ul class="menu-list">
+          <li><button class="menu-card" type="button" data-terms-doc="public-offer"><span class="lead"><img class="pic-full" src="assets/pictogram-document.png" alt="" /><span><span class="t">Public Offer</span><span class="d">9 Sections</span></span></span><img class="chevron" src="assets/icon-arrow-right.png" alt="" /></button></li>
+          <li><button class="menu-card" type="button" data-terms-doc="privacy-policy"><span class="lead"><img class="pic-full" src="assets/pictogram-document.png" alt="" /><span><span class="t">Privacy Policy</span><span class="d">5 Sections</span></span></span><img class="chevron" src="assets/icon-arrow-right.png" alt="" /></button></li>
+          <li><button class="menu-card" type="button" data-terms-doc="personal-data"><span class="lead lead--top"><img class="pic-full" src="assets/pictogram-document.png" alt="" /><span><span class="t">Consent to the Processing of Personal Data</span><span class="d">1 Page</span></span></span><img class="chevron" src="assets/icon-arrow-right.png" alt="" /></button></li>
+        </ul>
+      </div>
       <div class="home-indicator" aria-hidden="true"></div>
     </main>
 
@@ -3532,6 +3559,11 @@
       document.getElementById('btn-support-sent-another').addEventListener('click', () => openSupport(backTo));
       document.getElementById('btn-support-sent-back').addEventListener('click', () => show(backTo));
     })();
+
+    // ---- Terms and service ----
+    document.getElementById('btn-home-terms').addEventListener('click', () => show('screen-terms'));
+    document.getElementById('btn-terms-back').addEventListener('click', () => show('screen-home'));
+    document.querySelectorAll('[data-terms-doc]').forEach(b => b.addEventListener('click', () => console.log('Doc', b.dataset.termsDoc)));   // TODO: екрани документів
 
     // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
     const phoneEl = document.querySelector('.phone');
