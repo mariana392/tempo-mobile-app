@@ -968,24 +968,6 @@
     .btn-read.is-done { background: var(--purple-800); border-color: var(--purple-800); color: var(--white-100); animation: read-pop .35s ease; }
     .btn-read.is-done::before { opacity: 0; }
     @keyframes read-pop { 0% { transform: scale(1); } 45% { transform: scale(1.03); } 100% { transform: scale(1); } }
-    /* квіз */
-    .quiz-backdrop { position: absolute; inset: 0; z-index: 7; background: rgba(0,0,0,.4); opacity: 0; visibility: hidden; transition: opacity .25s, visibility 0s linear .25s; }
-    .quiz-sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 8; padding: 24px 16px 48px; background: var(--white-100); border-radius: 16px 16px 0 0; transform: translateY(100%); visibility: hidden; transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s linear .3s; display: flex; flex-direction: column; gap: 16px; }
-    .is-quiz .quiz-backdrop { opacity: 1; visibility: visible; transition: opacity .25s; }
-    .is-quiz .quiz-sheet { transform: translateY(0); visibility: visible; transition: transform .3s cubic-bezier(.2,.8,.2,1); }
-    .quiz-sheet .q-step { margin: 0; font: 400 12px/16px var(--font); letter-spacing: 0.4px; color: #635d63; }
-    .quiz-sheet h2 { margin: 0; font: 500 22px/28px var(--font); }
-    .quiz-sheet .q-text { margin: 0; font: 400 16px/24px var(--font); letter-spacing: 0.15px; }
-    .q-options { display: flex; flex-direction: column; gap: 8px; }
-    .q-options button { min-height: 56px; padding: 12px 16px; border: 1px solid #d2ced2; border-radius: 8px; background: var(--white-100); text-align: left; cursor: pointer; font: 400 16px/24px var(--font); letter-spacing: 0.15px; color: var(--text-primary-black-700); }
-    .q-options button.is-wrong { border-color: var(--error); background: #fdecea; }
-    .q-options button.is-right { border-color: var(--green-soft); background: var(--success-soft); }
-    .q-feedback { margin: 0; font: 400 14px/20px var(--font); letter-spacing: 0.25px; color: var(--error); }
-    .q-feedback button { padding: 0; border: 0; background: none; color: var(--otp-focus); font: inherit; text-decoration: underline; cursor: pointer; }
-    .quiz-sheet .btn { position: static; width: 100%; height: 56px; padding: 16px 24px; }
-    .q-accepted { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-    .q-accepted img { width: 48px; height: 48px; }
-    .q-accepted p { margin: 0; font: 400 12px/16px var(--font); letter-spacing: 0.4px; color: #635d63; }
   </style>
 </head>
 <body>
@@ -1223,9 +1205,6 @@
       <p class="read-hint" id="offer-hint">Scroll to the end to continue</p>
       <button class="btn-read" type="button" id="btn-offer-continue">Read more ↓</button>
       <div class="home-indicator home-indicator--doc" aria-hidden="true"></div>
-      <!-- Квіз перед продовженням -->
-      <div class="quiz-backdrop" id="quiz-backdrop" aria-hidden="true"></div>
-      <section class="quiz-sheet" id="quiz-sheet" role="dialog" aria-modal="true" aria-labelledby="quiz-title"></section>
     </main>
 
     <main class="screen screen--white" id="screen-privacy-policy" aria-hidden="true">
@@ -2748,7 +2727,7 @@
     document.getElementById('btn-continue-diia').addEventListener('click', () => show('screen-legal-terms'));
     // ---- Public Offer: обов'язкове прочитання ----
     // Не дочитано → «Read more ↓» (тап = скрол на 85% екрана, фон кнопки = прогрес) → ≥98% «Continue»
-    // → квіз (2 питання; помилка → скрол до розділу) → Прийнято (лог версії й часу в localStorage)
+    // → Прийнято (лог версії й часу в localStorage) → наступний екран
     const OFFER_VERSION = '1.0';
     const offerScreen = document.getElementById('screen-public-offer');
     const offerScroll = document.getElementById('offer-scroll');
@@ -2772,7 +2751,7 @@
     }
     offerScroll.addEventListener('scroll', offerProgress, { passive: true });
     function offerReset() {
-      offerDone = false; offerScreen.classList.remove('is-doc-read', 'is-quiz');
+      offerDone = false; offerScreen.classList.remove('is-doc-read');
       offerBtn.classList.remove('is-done'); offerBtn.textContent = 'Read more ↓'; offerBtn.style.setProperty('--read', '0%');
       offerHint.textContent = 'Scroll to the end to continue';
       offerScroll.style.scrollBehavior = 'auto'; offerScroll.scrollTop = 0; offerScroll.style.scrollBehavior = '';
@@ -2782,48 +2761,15 @@
     const offerNext = () => show(offerFrom === 'screen-legal-terms' ? 'screen-privacy-policy' : offerFrom);
     offerBtn.addEventListener('click', () => {
       if (!offerDone) { offerScroll.scrollBy({ top: offerScroll.clientHeight * 0.85, behavior: 'smooth' }); return; }
-      openQuiz();
+      acceptOffer();
     });
-    // квіз
-    const quiz = document.getElementById('quiz-sheet');
-    const QUIZ = [
-      { q: 'How is the money you receive through Tempo repaid?', a: ['By card within 30 days', 'Automatically from your next salary', 'In monthly instalments with interest'], ok: 1, sec: 6, secTitle: 'Repayment' },
-      { q: 'What fee applies to each transfer?', a: ['No fee', '1% per day', 'A fixed fee of 100 ₴'], ok: 2, sec: 5, secTitle: 'Fees' },
-    ];
-    let qi = 0;
-    function renderQuiz() {
-      const item = QUIZ[qi];
-      quiz.innerHTML = `<p class="q-step">Question ${qi + 1} of ${QUIZ.length}</p><h2 id="quiz-title">Quick check</h2><p class="q-text">${item.q}</p>
-        <div class="q-options">${item.a.map((t, i) => `<button type="button" data-i="${i}">${t}</button>`).join('')}</div><p class="q-feedback" hidden></p>`;
-      quiz.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => {
-        const fb = quiz.querySelector('.q-feedback');
-        if (+b.dataset.i === item.ok) {
-          b.classList.add('is-right');
-          setTimeout(() => { qi++; qi < QUIZ.length ? renderQuiz() : acceptOffer(); }, 450);
-        } else {
-          b.classList.add('is-wrong');
-          fb.hidden = false;
-          fb.innerHTML = `Not quite. This is explained in section ${item.sec} — ${item.secTitle}. <button type="button">Re-read section</button>`;
-          fb.querySelector('button').addEventListener('click', () => {
-            closeQuiz();
-            document.getElementById('offer-s' + item.sec).scrollIntoView({ behavior: 'smooth', block: 'start' });
-          });
-        }
-      }));
-    }
-    function openQuiz() { qi = 0; renderQuiz(); offerScreen.classList.add('is-quiz'); }
-    function closeQuiz() { offerScreen.classList.remove('is-quiz'); }
-    document.getElementById('quiz-backdrop').addEventListener('click', closeQuiz);
+    // Прийнято: лог версії й часу (без квізу) і одразу далі
     function acceptOffer() {
-      const at = new Date();
-      try { localStorage.setItem('tempo:offer-accepted', JSON.stringify({ version: OFFER_VERSION, at: at.toISOString() })); } catch (e) {}
-      const when = at.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-      quiz.innerHTML = `<div class="q-accepted"><img src="assets/icon-tick-circle.png" alt="" /><h2 id="quiz-title">Offer accepted</h2><p>Version ${OFFER_VERSION} · ${when}</p></div>
-        <button class="btn btn--primary" type="button">Continue</button>`;
-      quiz.querySelector('.btn').addEventListener('click', () => { closeQuiz(); offerNext(); });
+      try { localStorage.setItem('tempo:offer-accepted', JSON.stringify({ version: OFFER_VERSION, at: new Date().toISOString() })); } catch (e) {}
+      offerNext();
     }
     document.getElementById('btn-legal-continue').addEventListener('click', () => openOffer('screen-legal-terms'));
-    document.getElementById('btn-offer-back').addEventListener('click', () => { closeQuiz(); show(offerFrom); });
+    document.getElementById('btn-offer-back').addEventListener('click', () => show(offerFrom));
     document.getElementById('btn-privacy-back').addEventListener('click', () => show('screen-public-offer'));
     document.getElementById('btn-privacy-continue').addEventListener('click', () => show('screen-consent'));
     document.getElementById('btn-consent-back').addEventListener('click', () => show('screen-privacy-policy'));
