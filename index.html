@@ -1607,7 +1607,7 @@
             <section class="card">
               <div class="card-head">
                 <h2>Recent transactions</h2>
-                <button class="chip-btn" type="button">All <img src="assets/icon-arrow-all.png" alt="" /></button>
+                <button class="chip-btn" type="button" id="btn-home-all">All <img src="assets/icon-arrow-all.png" alt="" /></button>
               </div>
               <ul class="transfers">
                 <li class="transfer" role="button" tabindex="0" data-earning data-amount="10 000.00" data-date="Feb 16, 2026"><div class="who"><img src="assets/tile-receive.png" alt="" /><div><p class="name">Earnings</p><p class="date">Feb 16, 2026</p></div></div><p class="sum sum--in">10 000.00 ₴</p></li>
@@ -3055,6 +3055,8 @@
       const target = tab.dataset.tab;
       if (target.startsWith('screen-') && target !== current) show(target);
     }));
+
+    document.getElementById('btn-home-all').addEventListener('click', () => show('screen-transactions'));   // All → Transactions
 
     // ---- Earnings Details ----
     let earningsReturn = 'screen-home';
