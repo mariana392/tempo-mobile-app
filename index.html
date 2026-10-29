@@ -947,7 +947,7 @@
     .terms-body .menu-card .lead > span { width: 230px; }
     .menu-card .lead--top { align-items: flex-start; }
     /* ---- Public Offer (Figma 5347:35642) + обов'язкове прочитання ----
-       Стани: Не дочитано («Read more ↓», тап = скрол на 85% екрана) → Дочитано (≥98%, «Continue →»)
+       Стани: Не дочитано («Read more ↓», тап = скрол на 85% екрана) → Дочитано (≥98%, «Continue»)
        → Квіз (2 питання; помилка → скрол до потрібного розділу) → Прийнято (лог версії й часу) */
     .doc-scroll { position: absolute; left: 0; right: 0; top: 101px; bottom: 134px; overflow-y: auto; scrollbar-width: none; scroll-behavior: smooth; }
     .doc-scroll::-webkit-scrollbar { display: none; }
@@ -959,13 +959,6 @@
     .read-pct { position: absolute; right: 16px; top: 59px; font: 500 14px/20px var(--font); letter-spacing: 0.1px; color: #635d63; }
     .read-bar { position: absolute; left: 16px; right: 16px; top: 93px; height: 4px; border-radius: 2px; background: #f1f0f1; overflow: hidden; }
     .read-bar i { display: block; height: 100%; width: 0; background: #d048d0; border-radius: inherit; transition: width .15s linear; }
-    .key-points { padding: 16px; background: #fff8e1; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
-    .key-points h2 { margin: 0; font: 500 16px/24px var(--font); letter-spacing: 0.15px; }
-    .key-points ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font: 400 14px/20px var(--font); letter-spacing: 0.25px; }
-    .doc-toc { list-style: none; margin: 0; padding: 0; border-top: 1px solid #e7e7e8; }
-    .doc-toc button { width: 100%; height: 44px; padding: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 0; border-bottom: 1px solid #e7e7e8; background: none; cursor: pointer; text-align: left; font: 400 14px/20px var(--font); letter-spacing: 0.25px; color: var(--text-primary-black-700); }
-    .doc-toc .chk { width: 20px; height: 20px; flex: none; border-radius: 50%; border: 1.5px solid #d2ced2; background: center / 20px no-repeat; }
-    .doc-toc .is-read .chk { border: 0; background-image: url(assets/icon-tick-circle.png); }
     .doc-fade { position: absolute; left: 0; right: 0; bottom: 134px; height: 48px; background: linear-gradient(rgba(255,255,255,0), #fff); pointer-events: none; transition: opacity .2s; }
     .is-doc-read .doc-fade { opacity: 0; }
     .read-hint { position: absolute; left: 16px; right: 16px; top: 722px; margin: 0; text-align: center; font: 400 12px/16px var(--font); letter-spacing: 0.4px; color: #635d63; }
@@ -1186,15 +1179,6 @@
       <div class="doc-scroll" id="offer-scroll">
         <article class="doc">
           <h1>Legal Terms of Use for the Tempo Service</h1>
-          <section class="key-points">
-            <h2>Key points in 20 seconds</h2>
-            <ol>
-              <li>A fixed fee of 100 ₴ applies to each transfer.</li>
-              <li>Transfers are deducted automatically from your next salary.</li>
-              <li>One account per person.</li>
-            </ol>
-          </section>
-          <ul class="doc-toc" id="offer-toc"><li><button type="button" data-goto="1"><span>1. General Provisions</span><span class="chk" aria-hidden="true"></span></button></li><li><button type="button" data-goto="2"><span>2. Definitions</span><span class="chk" aria-hidden="true"></span></button></li><li><button type="button" data-goto="3"><span>3. Registration and Access</span><span class="chk" aria-hidden="true"></span></button></li><li><button type="button" data-goto="4"><span>4. Access to Earned Wages</span><span class="chk" aria-hidden="true"></span></button></li><li><button type="button" data-goto="5"><span>5. Fees</span><span class="chk" aria-hidden="true"></span></button></li><li><button type="button" data-goto="6"><span>6. Repayment</span><span class="chk" aria-hidden="true"></span></button></li><li><button type="button" data-goto="7"><span>7. Personal Data</span><span class="chk" aria-hidden="true"></span></button></li><li><button type="button" data-goto="8"><span>8. Prohibited Actions</span><span class="chk" aria-hidden="true"></span></button></li><li><button type="button" data-goto="9"><span>9. Changes and Contacts</span><span class="chk" aria-hidden="true"></span></button></li></ul>
           <div class="doc-body">
             <section class="doc-section" id="offer-s1" data-sec="1">
               <h2>1. General Provisions</h2>
@@ -2763,7 +2747,7 @@
     document.getElementById('btn-verify-back').addEventListener('click', () => show(verifyReturnTo));
     document.getElementById('btn-continue-diia').addEventListener('click', () => show('screen-legal-terms'));
     // ---- Public Offer: обов'язкове прочитання ----
-    // Не дочитано → «Read more ↓» (тап = скрол на 85% екрана, фон кнопки = прогрес) → ≥98% «Continue →»
+    // Не дочитано → «Read more ↓» (тап = скрол на 85% екрана, фон кнопки = прогрес) → ≥98% «Continue»
     // → квіз (2 питання; помилка → скрол до розділу) → Прийнято (лог версії й часу в localStorage)
     const OFFER_VERSION = '1.0';
     const offerScreen = document.getElementById('screen-public-offer');
@@ -2772,32 +2756,25 @@
     const offerHint = document.getElementById('offer-hint');
     const offerPct = document.getElementById('offer-pct');
     const offerBar = document.getElementById('offer-bar');
-    const offerSecs = [...offerScreen.querySelectorAll('.doc-section')];
-    const offerToc = [...offerScreen.querySelectorAll('[data-goto]')];
     let offerDone = false, offerFrom = 'screen-legal-terms';
     function offerProgress() {
       const max = offerScroll.scrollHeight - offerScroll.clientHeight;
       const pct = max <= 0 ? 100 : Math.min(100, Math.round(offerScroll.scrollTop / max * 100));
       offerPct.textContent = pct + '%'; offerBar.style.width = pct + '%';
       if (!offerDone) offerBtn.style.setProperty('--read', pct + '%');
-      const bottom = offerScroll.getBoundingClientRect().bottom;
-      offerSecs.forEach((sec, i) => { if (sec.getBoundingClientRect().bottom <= bottom + 2) offerToc[i].closest('li').classList.add('is-read'); });
       if (!offerDone && pct >= 98) {
         offerDone = true;
-        offerSecs.forEach((_, i) => offerToc[i].closest('li').classList.add('is-read'));
         offerScreen.classList.add('is-doc-read');
-        offerBtn.classList.add('is-done'); offerBtn.textContent = 'Continue →';
+        offerBtn.classList.add('is-done'); offerBtn.textContent = 'Continue';
         offerHint.textContent = 'All sections viewed';
         try { navigator.vibrate?.(30); } catch (e) {}
       }
     }
     offerScroll.addEventListener('scroll', offerProgress, { passive: true });
-    offerToc.forEach(b => b.addEventListener('click', () => document.getElementById('offer-s' + b.dataset.goto).scrollIntoView({ behavior: 'smooth', block: 'start' })));
     function offerReset() {
       offerDone = false; offerScreen.classList.remove('is-doc-read', 'is-quiz');
       offerBtn.classList.remove('is-done'); offerBtn.textContent = 'Read more ↓'; offerBtn.style.setProperty('--read', '0%');
       offerHint.textContent = 'Scroll to the end to continue';
-      offerToc.forEach(b => b.closest('li').classList.remove('is-read'));
       offerScroll.style.scrollBehavior = 'auto'; offerScroll.scrollTop = 0; offerScroll.style.scrollBehavior = '';
       requestAnimationFrame(offerProgress);   // короткий текст — одразу «Дочитано»
     }
