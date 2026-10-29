@@ -867,9 +867,9 @@
     .is-keyboard .bank-sheet .btn-bs-add { top: 402px; }
     #ios-keyboard-iban, #ios-keyboard-iban-new { z-index: 9; }
     /* ---- Bank account added (Figma 1189:19503) ---- */
-    .bank-card { position: absolute; left: 16px; top: 130px; width: 358px; max-width: calc(100% - 32px); height: 58px; padding: 0 16px; border: 1px solid #d2ced2; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
-    .bank-card p { margin: 0; width: 283px; font: 400 14px/20px var(--font); letter-spacing: 0.25px; }
-    .bank-card .radio { display: block; width: 24px; height: 24px; flex: none; }
+    .iban-card { position: absolute; left: 16px; top: 130px; width: 358px; max-width: calc(100% - 32px); height: 58px; padding: 0 16px; border: 1px solid #d2ced2; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
+    .iban-card p { margin: 0; width: 283px; font: 400 14px/20px var(--font); letter-spacing: 0.25px; }
+    .iban-card .radio { display: block; width: 24px; height: 24px; flex: none; }
     .btn-replace-bank { position: absolute; left: 16px; top: 746px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font: 500 14px/20px var(--font); letter-spacing: 0.1px; color: #661f66; border-radius: 4px; }
     .btn-replace-bank img { width: 20px; height: 20px; }
     .btn-replace-bank:focus-visible { outline: 3px solid #7be35a; outline-offset: 3px; }
@@ -1814,7 +1814,7 @@
       </div>
       <p class="nav-title">Bank account</p>
       <button class="btn-back" type="button" id="btn-bank-added-back" aria-label="Назад"><img src="assets/btn-back.png" alt="" /></button>
-      <div class="bank-card"><p id="bank-added-iban">UA86 351006 000909 6090889090054</p><span class="radio" aria-hidden="true"></span></div>
+      <div class="iban-card"><p id="bank-added-iban">UA86 351006 000909 6090889090054</p><span class="radio" aria-hidden="true"></span></div>
       <button class="btn-replace-bank" type="button" id="btn-replace-bank"><img src="assets/icon-card-replace.png" alt="" />Replace bank account</button>
       <div class="toast" id="toast-bank-replaced" role="status" aria-live="polite"><img src="assets/icon-card-replace-white.png" alt="" />Bank account replaced</div>
       <div class="home-indicator" aria-hidden="true"></div>
