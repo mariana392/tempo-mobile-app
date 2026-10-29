@@ -919,6 +919,21 @@
     .search-box:focus-within { border-color: var(--otp-focus); }
     .menu-card .pic-full { display: block; width: 48px; height: 48px; flex: none; }
     .faq-empty { margin: 8px 0 0; text-align: center; font: 400 16px/24px var(--font); letter-spacing: 0.15px; color: #635d63; }
+    /* ---- Support Service (Figma 5322:35465) ---- */
+    .support-body { position: absolute; left: 16px; top: 105px; width: 358px; max-width: calc(100% - 32px); display: flex; flex-direction: column; gap: 40px; }
+    .support-copy { display: flex; flex-direction: column; gap: 12px; }
+    .support-copy h1 { margin: 0; font: 500 22px/28px var(--font); }
+    .support-copy p { margin: 0; font: 400 16px/24px var(--font); letter-spacing: 0.15px; }
+    .textarea-field { position: relative; display: block; height: 209px; border: 1px solid #ada6ad; border-radius: 4px; cursor: text; }
+    .textarea-field textarea { display: block; width: 100%; height: 100%; padding: 15px 15px 15px 15px; border: 0; outline: none; resize: none; background: none; font: 400 16px/24px var(--font); letter-spacing: 0.15px; color: var(--text-primary-black-700); }
+    .textarea-field textarea::placeholder { color: #9e9d9d; opacity: 1; }
+    .textarea-field .label { position: absolute; left: 11px; top: -9px; padding: 0 4px; background: var(--white-100); font: 400 12px/16px var(--font); letter-spacing: 0.4px; color: #635d63; }
+    .textarea-field:focus-within { border: 3px solid var(--otp-focus); }
+    .textarea-field:focus-within textarea { padding: 13px; }
+    .textarea-field:focus-within .label { left: 9px; top: -11px; color: var(--otp-focus); }
+    .textarea-field.is-filled:not(:focus-within) { border-color: var(--otp-filled); }
+    #screen-support .btn-support-send { top: 750px; bottom: auto; padding: 16px 24px; }
+    #screen-support.is-keyboard .btn-support-send { top: 485px; }
   </style>
 </head>
 <body>
@@ -1591,7 +1606,7 @@
             <section class="card">
               <h2>Useful</h2>
               <div class="useful">
-                <button type="button"><img src="assets/icon-support.png" alt="" />Support service</button>
+                <button type="button" id="btn-home-support"><img src="assets/icon-support.png" alt="" />Support service</button>
                 <button type="button" id="btn-home-faq"><img src="assets/icon-faq.png" alt="" />FAQ</button>
                 <button type="button"><img src="assets/icon-terms.png" alt="" />Terms and service</button>
               </div>
@@ -1871,6 +1886,63 @@
       </div>
       <div class="home-indicator" aria-hidden="true"></div>
       <div class="ios-keyboard" id="ios-keyboard-faq" aria-hidden="true">
+        <img class="ios-keyboard-img" src="assets/keyboard-alphabetic.png" alt="" />
+        <button type="button" class="kb-key" data-key="q" style="left:5px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="q"></button>
+        <button type="button" class="kb-key" data-key="w" style="left:43px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="w"></button>
+        <button type="button" class="kb-key" data-key="e" style="left:82px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="e"></button>
+        <button type="button" class="kb-key" data-key="r" style="left:120px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="r"></button>
+        <button type="button" class="kb-key" data-key="t" style="left:159px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="t"></button>
+        <button type="button" class="kb-key" data-key="y" style="left:197px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="y"></button>
+        <button type="button" class="kb-key" data-key="u" style="left:236px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="u"></button>
+        <button type="button" class="kb-key" data-key="i" style="left:275px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="i"></button>
+        <button type="button" class="kb-key" data-key="o" style="left:313px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="o"></button>
+        <button type="button" class="kb-key" data-key="p" style="left:352px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="p"></button>
+        <button type="button" class="kb-key" data-key="a" style="left:24px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="a"></button>
+        <button type="button" class="kb-key" data-key="s" style="left:63px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="s"></button>
+        <button type="button" class="kb-key" data-key="d" style="left:101px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="d"></button>
+        <button type="button" class="kb-key" data-key="f" style="left:140px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="f"></button>
+        <button type="button" class="kb-key" data-key="g" style="left:178px;top:62px;width:35px;height:42px" tabindex="-1" aria-label="g"></button>
+        <button type="button" class="kb-key" data-key="h" style="left:218px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="h"></button>
+        <button type="button" class="kb-key" data-key="j" style="left:256px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="j"></button>
+        <button type="button" class="kb-key" data-key="k" style="left:295px;top:62px;width:33px;height:42px" tabindex="-1" aria-label="k"></button>
+        <button type="button" class="kb-key" data-key="l" style="left:333px;top:62px;width:34px;height:42px" tabindex="-1" aria-label="l"></button>
+        <button type="button" class="kb-key" data-key="shift" style="left:5px;top:118px;width:42px;height:42px" tabindex="-1" aria-label="Shift"></button>
+        <button type="button" class="kb-key" data-key="z" style="left:61px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="z"></button>
+        <button type="button" class="kb-key" data-key="x" style="left:100px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="x"></button>
+        <button type="button" class="kb-key" data-key="c" style="left:139px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="c"></button>
+        <button type="button" class="kb-key" data-key="v" style="left:178px;top:118px;width:35px;height:42px" tabindex="-1" aria-label="v"></button>
+        <button type="button" class="kb-key" data-key="b" style="left:218px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="b"></button>
+        <button type="button" class="kb-key" data-key="n" style="left:257px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="n"></button>
+        <button type="button" class="kb-key" data-key="m" style="left:296px;top:118px;width:34px;height:42px" tabindex="-1" aria-label="m"></button>
+        <button type="button" class="kb-key" data-key="backspace" style="left:344px;top:118px;width:42px;height:42px" tabindex="-1" aria-label="Видалити"></button>
+        <button type="button" class="kb-key" data-key="123" style="left:5px;top:174px;width:86px;height:42px" tabindex="-1" aria-label="Символи"></button>
+        <button type="button" class="kb-key" data-key="space" style="left:97px;top:174px;width:197px;height:42px" tabindex="-1" aria-label="Пробіл"></button>
+        <button type="button" class="kb-key" data-key="return" style="left:299px;top:174px;width:86px;height:42px" tabindex="-1" aria-label="Готово"></button>
+      </div>
+    </main>
+
+    <!-- Support Service (Figma 5322:35465) -->
+    <main class="screen screen--white" id="screen-support" aria-hidden="true">
+      <div class="status-bar" aria-hidden="true">
+        <span class="time">9:41</span>
+        <img class="notch" src="assets/notch-black.png" alt="" />
+        <img class="right" src="assets/status-right-dark.png" alt="" />
+      </div>
+      <p class="nav-title">Support Service</p>
+      <button class="btn-back" type="button" id="btn-support-back" aria-label="Назад"><img src="assets/btn-back.png" alt="" /></button>
+      <div class="support-body">
+        <div class="support-copy">
+          <h1>How can we help you?</h1>
+          <p>Please describe your question or issue. We will send a response to your email.</p>
+        </div>
+        <label class="textarea-field" id="field-support" for="input-support">
+          <textarea id="input-support" inputmode="none" placeholder="Describe the issue" spellcheck="false"></textarea>
+          <span class="label">Message</span>
+        </label>
+      </div>
+      <button class="btn btn--primary btn-support-send" type="button" id="btn-support-send" disabled>Send</button>
+      <div class="home-indicator" aria-hidden="true"></div>
+      <div class="ios-keyboard" id="ios-keyboard-support" aria-hidden="true">
         <img class="ios-keyboard-img" src="assets/keyboard-alphabetic.png" alt="" />
         <button type="button" class="kb-key" data-key="q" style="left:5px;top:8px;width:33px;height:42px" tabindex="-1" aria-label="q"></button>
         <button type="button" class="kb-key" data-key="w" style="left:43px;top:8px;width:34px;height:42px" tabindex="-1" aria-label="w"></button>
@@ -2653,7 +2725,7 @@
       let downTarget = null;
       screen.addEventListener('pointerdown', e => { downTarget = e.target; }, true);
       screen.addEventListener('click', () => {
-        if (downTarget && !downTarget.closest('.text-field, .search-box, .ios-keyboard')) close();
+        if (downTarget && !downTarget.closest('.text-field, .search-box, .textarea-field, .ios-keyboard')) close();
       });
       const type = text => {
         const s = target.selectionStart ?? target.value.length, e = target.selectionEnd ?? s;
@@ -2863,7 +2935,7 @@
       let downTarget = null;
       screen.addEventListener('pointerdown', e => { downTarget = e.target; }, true);
       screen.addEventListener('click', () => {
-        if (downTarget && !downTarget.closest('.text-field, .search-box, .ios-keyboard')) close();
+        if (downTarget && !downTarget.closest('.text-field, .search-box, .textarea-field, .ios-keyboard')) close();
       });
       keyboard.querySelectorAll('.kb-key').forEach(key => {
         key.addEventListener('pointerdown', e => { e.preventDefault(); key.classList.add('is-pressed'); });
@@ -3090,6 +3162,7 @@
     document.getElementById('btn-profile-edit').addEventListener('click', () => console.log('Edit profile'));      // TODO: екран редагування
     document.querySelectorAll('[data-profile-item]').forEach(b => b.addEventListener('click', () => {
       if (b.dataset.profileItem === 'Bank account') return show(bankIban ? 'screen-bank-added' : 'screen-bank-account');
+      if (b.dataset.profileItem === 'Support service') return openSupport('screen-profile');
       console.log(b.dataset.profileItem);   // TODO
     }));
     document.getElementById('btn-bank-back').addEventListener('click', () => show('screen-profile'));
@@ -3411,6 +3484,22 @@
       document.getElementById('btn-home-faq').addEventListener('click', () => { input.value = ''; input.dispatchEvent(new Event('input')); show('screen-faq'); });
       document.getElementById('btn-faq-back').addEventListener('click', () => { kb.close(); show('screen-home'); });
       document.querySelectorAll('[data-faq]').forEach(b => b.addEventListener('click', () => console.log('FAQ', b.dataset.faq)));   // TODO: розділи FAQ
+    })();
+
+    // ---- Support Service: повідомлення в службу підтримки ----
+    let openSupport;
+    (function setupSupport() {
+      const input = document.getElementById('input-support');
+      const field = document.getElementById('field-support');
+      const send = document.getElementById('btn-support-send');
+      let backTo = 'screen-home';
+      const kb = setupAlphaKeyboard('screen-support', { inputs: [input], on123: () => '?', onReturn: i => { const s = i.selectionStart; i.setRangeText('\n', s, i.selectionEnd, 'end'); i.dispatchEvent(new Event('input')); }, allowSpace: true });
+      const update = () => { field.classList.toggle('is-filled', input.value.trim() !== ''); send.disabled = input.value.trim() === ''; };
+      input.addEventListener('input', update);
+      openSupport = from => { backTo = from; input.value = ''; update(); show('screen-support'); };
+      document.getElementById('btn-home-support').addEventListener('click', () => openSupport('screen-home'));
+      document.getElementById('btn-support-back').addEventListener('click', () => { kb.close(); show(backTo); });
+      send.addEventListener('click', () => { kb.close(); console.log('Support message:', input.value); });   // TODO: наступний екран
     })();
 
     // ---- Масштаб: увесь екран 390×844 вміщується у вікно браузера (телефон, ноутбук) ----
